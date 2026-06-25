@@ -3,3 +3,4 @@ from .models import User, UserModuleAccess
 
 admin.site.register(User)
 admin.site.register(UserModuleAccess)
+
