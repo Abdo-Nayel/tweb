@@ -7,7 +7,7 @@
 <form class="search-bar" method="get">
   <select name="customer" class="form-control" required>
     <option value="">اختر العميل...</option>
-    {% for c in customers %}<option value="{{ c.pk }}" {% if customer and customer.pk == c.pk %}selected{% endif %}>{{ c.code }} — {{ c.name }}</option>{% endfor %}
+    {% for c in customers %}<option value="{{ c.pk }}" {% if customer and customer.pk == c.pk %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
   </select>
   <input name="date_from" type="date" class="form-control" value="{{ date_from }}">
   <input name="date_to" type="date" class="form-control" value="{{ date_to }}">

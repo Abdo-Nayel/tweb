@@ -79,6 +79,11 @@
       <a href="{% url 'expense_list' %}" class="nav-link" data-path="/treasury/expenses"><i class="fas fa-money-bill-wave"></i> المصروفات</a>
       <a href="{% url 'cash_ledger' %}" class="nav-link" data-path="/treasury/cash-ledger"><i class="fas fa-cash-register"></i> كشف الخزنة النقدية</a>
       <a href="{% url 'bank_ledger' %}" class="nav-link" data-path="/treasury/bank-ledger"><i class="fas fa-university"></i> كشف البنوك</a>
+      <span class="nav-section-label">التقارير</span>
+      {% can_access 'daily_report' 'view' as can_daily %}
+      {% if can_daily %}<a href="{% url 'daily_report' %}" class="nav-link" data-path="/dashboard/reports/daily"><i class="fas fa-calendar-day"></i> تقرير يومي</a>{% endif %}
+      {% can_access 'activity_log' 'view' as can_activity %}
+      {% if can_activity %}<a href="{% url 'activity_log' %}" class="nav-link" data-path="/dashboard/reports/activity-log"><i class="fas fa-history"></i> سجل الحركات</a>{% endif %}
     </div>
   </div>
 
@@ -117,6 +122,16 @@
     return path === prefix || path.startsWith(prefix + '/');
   }
 
+  function setGroupOpen(group, open) {
+    const toggle = group.querySelector('.nav-group-toggle');
+    group.classList.toggle('open', open);
+    toggle?.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  function collapseAllGroups() {
+    groups.forEach(group => setGroupOpen(group, false));
+  }
+
   let activeLink = null;
   let activeLen = 0;
   document.querySelectorAll('#app-sidebar .nav-link[data-path]').forEach(link => {
@@ -125,27 +140,28 @@
       activeLen = link.dataset.path.length;
     }
   });
+
+  collapseAllGroups();
   if (activeLink) {
     activeLink.classList.add('active');
-    activeLink.closest('.nav-group')?.classList.add('open');
+    const activeGroup = activeLink.closest('.nav-group');
+    if (activeGroup) setGroupOpen(activeGroup, true);
   }
 
   groups.forEach(group => {
     const toggle = group.querySelector('.nav-group-toggle');
-    const id = group.dataset.navGroup;
-    const saved = sessionStorage.getItem('nav-open-' + id);
-
-    if (group.classList.contains('open')) {
-      toggle.setAttribute('aria-expanded', 'true');
-    } else if (saved === '1') {
-      group.classList.add('open');
-      toggle.setAttribute('aria-expanded', 'true');
-    }
-
     toggle.addEventListener('click', () => {
-      const isOpen = group.classList.toggle('open');
-      toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-      sessionStorage.setItem('nav-open-' + id, isOpen ? '1' : '0');
+      const isOpen = group.classList.contains('open');
+      collapseAllGroups();
+      if (!isOpen) setGroupOpen(group, true);
+    });
+  });
+
+  document.querySelectorAll('#app-sidebar .nav-link[data-path]').forEach(link => {
+    link.addEventListener('click', () => {
+      collapseAllGroups();
+      const parent = link.closest('.nav-group');
+      if (parent) setGroupOpen(parent, true);
     });
   });
 })();

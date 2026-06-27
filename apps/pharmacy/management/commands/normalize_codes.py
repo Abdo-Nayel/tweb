@@ -48,4 +48,5 @@ class Command(BaseCommand):
             u.save(update_fields=['code'])
 
         n = Supplier.objects.update(is_active=True)
-        self.stdout.write(self.style.SUCCESS(f'Done. Suppliers activated: {n}'))
+        c = Customer.objects.update(is_active=True)
+        self.stdout.write(self.style.SUCCESS(f'Done. Suppliers activated: {n}, Customers activated: {c}'))

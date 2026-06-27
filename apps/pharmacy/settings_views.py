@@ -16,6 +16,7 @@ from apps.core.views import delete_confirm
 from apps.core.pagination import paginate_queryset
 from apps.pharmacy.models import PharmacyProfile, Branch, BarcodeLabelSettings, ReceiptSettings
 from apps.treasury.models import Bank
+from apps.treasury.banks import banks_for_user
 from apps.users.models import UserModuleAccess
 
 User = get_user_model()
@@ -122,14 +123,13 @@ def branch_delete(request, pk):
 @require_module('settings', 'view')
 def bank_list(request):
     q = request.GET.get('q', '')
-    items = Bank.objects.select_related('branch').all()
+    items = banks_for_user(request.user, active_only=False)
     if q:
         items = items.filter(Q(name__icontains=q) | Q(code__icontains=q))
-    page_obj = paginate_queryset(request, items, per_page=25)
+    items = items.order_by('name', 'code')
     return render(request, 'settings/bank_list.html', {
         'page_title': 'البنوك',
-        'items': page_obj,
-        'page_obj': page_obj,
+        'items': items,
         'q': q,
     })
 
@@ -138,14 +138,13 @@ def bank_list(request):
 @require_module('settings', 'add')
 def bank_form(request, pk=None):
     obj = get_object_or_404(Bank, pk=pk) if pk else None
-    branches = Branch.objects.filter(is_active=True)
+
     if request.method == 'POST':
-        branch_id = request.POST.get('branch') or None
         data = {
             'code': request.POST.get('code') or _next_code(Bank, 'BNK'),
             'name': request.POST['name'],
             'account_number': request.POST.get('account_number', ''),
-            'branch_id': branch_id,
+            'branch_id': None,
             'notes': request.POST.get('notes', ''),
             'is_active': request.POST.get('is_active') == 'on',
         }
@@ -153,15 +152,14 @@ def bank_form(request, pk=None):
             for k, v in data.items():
                 setattr(obj, k, v)
             obj.save()
-            messages.success(request, 'تم تحديث البنك')
+            messages.success(request, 'تم تحديث الحساب البنكي')
         else:
             Bank.objects.create(**data)
-            messages.success(request, 'تم إضافة البنك')
+            messages.success(request, 'تم إضافة الحساب البنكي')
         return redirect('bank_list')
     return render(request, 'settings/bank_form.html', {
-        'page_title': 'تعديل بنك' if obj else 'إضافة بنك',
+        'page_title': 'تعديل حساب بنكي' if obj else 'إضافة حساب بنكي',
         'obj': obj,
-        'branches': branches,
         'suggested_code': obj.code if obj else _next_code(Bank, 'BNK'),
     })
 

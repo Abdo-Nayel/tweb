@@ -47,7 +47,7 @@
               <label>العميل *</label>
               <select name="customer" id="customer-select" class="form-control">
                 <option value="">اختر العميل...</option>
-                {% for c in customers %}<option value="{{ c.pk }}" data-code="{{ c.code }}">{{ c.code }} — {{ c.name }}</option>{% endfor %}
+                {% for c in customers %}<option value="{{ c.pk }}" data-code="{{ c.code }}">{{ c.name }}</option>{% endfor %}
               </select>
             </div>
           </div>

@@ -13,6 +13,8 @@ from apps.core.codes import next_serial
 from apps.purchases.models import PurchaseInvoice
 from apps.sales.models import SalesInvoice
 from apps.treasury.models import Bank
+from apps.treasury.banks import banks_for_user
+from apps.parties.customers import active_customers
 from .models import Supplier, Customer, SupplierPayment, CustomerPayment
 
 
@@ -218,7 +220,7 @@ def supplier_statement(request):
 
 @login_required
 def supplier_payment(request):
-    banks = Bank.objects.filter(is_active=True).order_by('code')
+    banks = banks_for_user(request.user)
     suppliers = Supplier.objects.filter(is_active=True).order_by('code')
 
     if request.method == 'POST':
@@ -280,7 +282,7 @@ def customer_balances(request):
 
 @login_required
 def customer_statement(request):
-    customers = Customer.objects.filter(is_active=True).order_by('code')
+    customers = active_customers()
     customer_id = request.GET.get('customer')
     date_from = request.GET.get('date_from')
     date_to = request.GET.get('date_to')
@@ -369,8 +371,8 @@ def customer_statement(request):
 
 @login_required
 def customer_payment(request):
-    banks = Bank.objects.filter(is_active=True).order_by('code')
-    customers = Customer.objects.filter(is_active=True).order_by('code')
+    banks = banks_for_user(request.user)
+    customers = active_customers()
 
     if request.method == 'POST':
         customer = get_object_or_404(Customer, pk=request.POST['customer'])

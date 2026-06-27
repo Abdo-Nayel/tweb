@@ -1,0 +1,46 @@
+{% extends 'layout_app.html' %}
+{% block page_content %}
+<div class="panel">
+  <div class="panel-header">
+    <h3><i class="fas fa-history"></i> سجل الحركات{% if period_label %} — {{ period_label }}{% endif %}</h3>
+    <a href="?from={{ filters.from }}&to={{ filters.to }}&user={{ filters.user }}&action={{ filters.action }}&export=pdf" class="btn btn-sm btn-danger"><i class="fas fa-file-pdf"></i> PDF</a>
+  </div>
+  <div class="panel-body">
+    <form class="search-bar" method="get">
+      <input name="from" type="date" class="form-control" value="{{ filters.from }}" placeholder="من">
+      <input name="to" type="date" class="form-control" value="{{ filters.to }}" placeholder="إلى">
+      <select name="user" class="form-control">
+        <option value="">كل المستخدمين</option>
+        {% for u in users %}
+        <option value="{{ u.pk }}" {% if filters.user == u.pk|stringformat:"s" %}selected{% endif %}>{{ u.username }}</option>
+        {% endfor %}
+      </select>
+      <select name="action" class="form-control">
+        <option value="">كل العمليات</option>
+        {% for val, label in actions %}
+        <option value="{{ val }}" {% if filters.action == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn btn-primary"><i class="fas fa-filter"></i> تصفية</button>
+    </form>
+
+    <table class="data-table" style="margin-top:1rem">
+      <thead><tr><th>الوقت</th><th>المستخدم</th><th>العملية</th><th>القسم</th><th>التفاصيل</th></tr></thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td>{{ log.created_at|date:"Y-m-d H:i" }}</td>
+          <td>{{ log.username }}</td>
+          <td><span class="badge badge-info">{{ log.get_action_display }}</span></td>
+          <td>{{ log.section|default:"—" }}</td>
+          <td>{{ log.description|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;padding:2rem;color:#94a3b8">لا توجد سجلات</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p style="color:#94a3b8;font-size:0.85rem;margin-top:0.75rem">يعرض آخر 500 سجل حسب الفلتر.</p>
+  </div>
+</div>
+{% endblock %}

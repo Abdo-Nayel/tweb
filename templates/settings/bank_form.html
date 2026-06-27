@@ -3,13 +3,13 @@
 <div class="panel"><div class="panel-header"><h3>{{ page_title }}</h3></div><div class="panel-body">
 <form method="post">{% csrf_token %}
 <div class="form-grid">
-  <div class="form-group"><label>كود البنك</label><input name="code" class="form-control" value="{% if obj %}{{ obj.code }}{% else %}{{ suggested_code }}{% endif %}"></div>
-  <div class="form-group"><label>اسم البنك / الحساب *</label><input name="name" class="form-control" required value="{{ obj.name|default:'' }}"></div>
+  <div class="form-group"><label>كود الحساب</label><input name="code" class="form-control" value="{% if obj %}{{ obj.code }}{% else %}{{ suggested_code }}{% endif %}"></div>
+  <div class="form-group"><label>اسم الحساب البنكي *</label><input name="name" class="form-control" required value="{{ obj.name|default:'' }}" placeholder="مثال: البنك الأهلي — حساب جاري"></div>
   <div class="form-group"><label>رقم الحساب</label><input name="account_number" class="form-control" value="{{ obj.account_number|default:'' }}"></div>
-  <div class="form-group"><label>الفرع</label><select name="branch" class="form-control"><option value="">—</option>{% for b in branches %}<option value="{{ b.pk }}" {% if obj.branch_id == b.pk %}selected{% endif %}>{{ b.name }}</option>{% endfor %}</select></div>
   <div class="form-group full"><label>ملاحظات</label><input name="notes" class="form-control" value="{{ obj.notes|default:'' }}"></div>
   <div class="form-group"><label><input type="checkbox" name="is_active" {% if not obj or obj.is_active %}checked{% endif %}> نشط</label></div>
 </div>
+<p class="form-hint">اسم البنك يظهر لكل الفروع — الحركات والأرصدة تُفلتر حسب فرع المستخدم في كشف البنك.</p>
 <button class="btn btn-primary"><i class="fas fa-save"></i> حفظ</button>
 <a href="{% url 'bank_list' %}" class="btn btn-outline">رجوع</a>
 </form></div></div>

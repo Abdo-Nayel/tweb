@@ -5,7 +5,7 @@ from django.conf import settings
 class Bank(models.Model):
     """حساب بنكي"""
     code = models.CharField('كود البنك', max_length=20, unique=True)
-    name = models.CharField('اسم البنك / الحساب', max_length=120)
+    name = models.CharField('اسم الحساب البنكي', max_length=120)
     account_number = models.CharField('رقم الحساب', max_length=50, blank=True)
     balance = models.DecimalField('الرصيد', max_digits=14, decimal_places=2, default=0)
     branch = models.ForeignKey(
@@ -22,7 +22,7 @@ class Bank(models.Model):
     class Meta:
         verbose_name = 'بنك'
         verbose_name_plural = 'البنوك'
-        ordering = ['code']
+        ordering = ['name', 'code']
 
     def __str__(self):
         return f'{self.code} — {self.name}'

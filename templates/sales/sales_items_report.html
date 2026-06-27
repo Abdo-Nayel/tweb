@@ -7,7 +7,7 @@
       <input name="q" class="form-control" placeholder="بحث صنف / باركود / رقم فاتورة..." value="{{ q }}">
       <select name="customer" class="form-control">
         <option value="">كل العملاء</option>
-        {% for c in customers %}<option value="{{ c.pk }}" {% if selected_customer == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.code }} — {{ c.name }}</option>{% endfor %}
+        {% for c in customers %}<option value="{{ c.pk }}" {% if selected_customer == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
       </select>
       <input name="date_from" type="date" class="form-control" value="{{ date_from }}">
       <input name="date_to" type="date" class="form-control" value="{{ date_to }}">

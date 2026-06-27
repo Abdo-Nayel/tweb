@@ -37,6 +37,8 @@ MODULE_GROUPS = [
         'icon': 'fa-cash-register',
         'modules': [
             ('expenses', 'المصروفات'),
+            ('daily_report', 'تقرير يومي'),
+            ('activity_log', 'سجل الحركات'),
         ],
     },
     {

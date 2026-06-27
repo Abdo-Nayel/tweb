@@ -27,6 +27,9 @@ source venv/bin/activate
 pip install --upgrade pip
 pip install -r Requirements.txt
 
+echo "==> Arabic fonts (PDF export fallback if static/fonts missing)"
+sudo apt-get install -y fonts-noto-arabic || true
+
 if [ ! -f .env ]; then
   echo "==> إنشاء .env من المثال — عدّل SECRET_KEY!"
   cp deploy/.env.example .env

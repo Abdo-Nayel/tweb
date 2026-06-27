@@ -5,17 +5,17 @@
   <div class="panel-header"><h3>البنوك</h3>{% can_access 'settings' 'add' as can_add %}{% if can_add %}<a href="{% url 'bank_add' %}" class="btn btn-sm btn-success"><i class="fas fa-plus"></i> إضافة</a>{% endif %}</div>
   <div class="panel-body">
     <form class="search-bar" method="get"><input name="q" class="form-control" placeholder="بحث..." value="{{ q }}"><button class="btn btn-primary"><i class="fas fa-search"></i></button></form>
+    <p class="form-hint" style="margin:0.75rem 0">أسماء البنوك مشتركة لكل الفروع — كل فرع يرى حركاته فقط في كشف البنك.</p>
     <table class="data-table">
-      <thead><tr><th>الكود</th><th>الاسم</th><th>رقم الحساب</th><th>الفرع</th><th></th></tr></thead>
+      <thead><tr><th>الكود</th><th>اسم الحساب</th><th>رقم الحساب</th><th>الرصيد</th><th></th></tr></thead>
       <tbody>{% for item in items %}<tr>
-        <td>{{ item.code }}</td><td><strong>{{ item.name }}</strong></td><td>{{ item.account_number }}</td><td>{{ item.branch|default:"—" }}</td>
+        <td>{{ item.code }}</td><td><strong>{{ item.name }}</strong></td><td>{{ item.account_number|default:"—" }}</td><td>{{ item.balance }}</td>
         <td class="row-actions">{% can_access 'settings' 'edit' as ce %}{% can_access 'settings' 'delete' as cd %}
           {% if ce %}<a href="{% url 'bank_edit' item.pk %}" class="btn btn-sm btn-outline"><i class="fas fa-edit"></i></a>{% endif %}
           {% if cd %}<a href="{% url 'bank_delete' item.pk %}" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></a>{% endif %}
         </td>
       </tr>{% empty %}<tr><td colspan="5" style="text-align:center;padding:2rem;color:#94a3b8">لا توجد بنوك</td></tr>{% endfor %}</tbody>
     </table>
-    {% include 'partials/pagination.html' %}
   </div>
 </div>
 {% endblock %}

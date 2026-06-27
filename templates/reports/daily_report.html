@@ -1,0 +1,64 @@
+{% extends 'layout_app.html' %}
+{% block page_content %}
+<div class="panel">
+  <div class="panel-header">
+    <h3><i class="fas fa-calendar-day"></i> تقرير الحركات — {{ period_label }}</h3>
+    <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+      <a href="?from={{ date_from|date:'Y-m-d' }}&to={{ date_to|date:'Y-m-d' }}&export=pdf" class="btn btn-sm btn-danger"><i class="fas fa-file-pdf"></i> PDF</a>
+    </div>
+  </div>
+  <div class="panel-body">
+    <form class="search-bar" method="get">
+      <input name="from" type="date" class="form-control" value="{{ date_from|date:'Y-m-d' }}" title="من تاريخ" min="2000-01-01" max="2100-12-31">
+      <input name="to" type="date" class="form-control" value="{{ date_to|date:'Y-m-d' }}" title="إلى تاريخ" min="2000-01-01" max="2100-12-31">
+      <button class="btn btn-primary"><i class="fas fa-filter"></i> تصفية</button>
+    </form>
+
+    <h4 class="report-section-title"><i class="fas fa-file-invoice"></i> مجمل الفواتير</h4>
+    <div class="report-summary-grid">
+      <div class="report-stat"><span>المبيعات</span><strong>{{ data.summary.sales }}</strong></div>
+      <div class="report-stat"><span>المشتريات</span><strong>{{ data.summary.purchases }}</strong></div>
+      <div class="report-stat"><span>مرتجع مبيعات</span><strong>{{ data.summary.sales_returns }}</strong></div>
+      <div class="report-stat"><span>مرتجع مشتريات</span><strong>{{ data.summary.purchase_returns }}</strong></div>
+    </div>
+
+    <h4 class="report-section-title"><i class="fas fa-cash-register"></i> الحركات النقدية</h4>
+    <div class="report-summary-grid">
+      <div class="report-stat"><span>تحصيلات فواتير المبيعات</span><strong>{{ data.summary.invoice_collections }}</strong></div>
+      <div class="report-stat"><span>سداد فواتير المشتريات</span><strong>{{ data.summary.invoice_payments }}</strong></div>
+      <div class="report-stat"><span>تحصيلات العملاء</span><strong>{{ data.summary.customer_collected }}</strong></div>
+      <div class="report-stat"><span>سدادات الموردين</span><strong>{{ data.summary.supplier_paid }}</strong></div>
+      <div class="report-stat"><span>المصروفات النقدية</span><strong>{{ data.summary.expenses }}</strong></div>
+      <div class="report-stat accent"><span>صافي النقدية</span><strong>{{ data.summary.net_cash }}</strong></div>
+    </div>
+
+    <h4 class="report-section-title"><i class="fas fa-list"></i> تفاصيل الحركات النقدية</h4>
+    <table class="data-table">
+      <thead><tr><th>التاريخ</th><th>المرجع</th><th>البيان</th><th>وارد</th><th>صادر</th></tr></thead>
+      <tbody>
+        {% for m in data.movements %}
+        <tr>
+          <td>{{ m.date }}</td><td>{{ m.ref }}</td><td>{{ m.desc }}</td>
+          <td>{% if m.in %}{{ m.in }}{% else %}—{% endif %}</td>
+          <td>{% if m.out %}{{ m.out }}{% else %}—{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;padding:2rem;color:#94a3b8">لا توجد حركات نقدية في هذه الفترة</td></tr>
+        {% endfor %}
+        <tr style="background:#f1f5f9;font-weight:bold">
+          <td colspan="3">إجمالي الوارد</td>
+          <td>{{ data.total_in }}</td><td>—</td>
+        </tr>
+        <tr style="background:#f1f5f9;font-weight:bold">
+          <td colspan="3">إجمالي الصادر</td>
+          <td>—</td><td>{{ data.total_out }}</td>
+        </tr>
+        <tr style="background:#dbeafe;font-weight:bold">
+          <td colspan="3">صافي النقدية</td>
+          <td colspan="2">{{ data.net }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

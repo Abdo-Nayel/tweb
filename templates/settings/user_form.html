@@ -14,17 +14,19 @@
   <div class="form-group"><label><input type="checkbox" name="is_active" {% if not obj or obj.is_active %}checked{% endif %}> نشط</label></div>
 </div>
 
-<h4 style="margin:1.5rem 0 0.75rem;font-weight:800"><i class="fas fa-shield-alt"></i> صلاحيات الشاشات</h4>
+<h4 class="perm-section-title"><i class="fas fa-shield-alt"></i> صلاحيات الشاشات</h4>
 <div class="perm-toolbar">
-  <button type="button" class="btn btn-outline btn-sm" onclick="selectAllPerm('view', true)">تحديد كل عرض</button>
-  <button type="button" class="btn btn-outline btn-sm" onclick="selectAllPerm('add', true)">تحديد كل إضافة</button>
-  <button type="button" class="btn btn-outline btn-sm" onclick="selectAllPerm('edit', true)">تحديد كل تعديل</button>
-  <button type="button" class="btn btn-outline btn-sm" onclick="selectAllPerm('delete', true)">تحديد كل حذف</button>
-  <button type="button" class="btn btn-outline btn-sm" onclick="selectAllPerm('all', false)">إلغاء الكل</button>
+  <button type="button" class="btn btn-outline btn-sm" onclick="selectAllPerm('view', true)">كل عرض</button>
+  <button type="button" class="btn btn-outline btn-sm" onclick="selectAllPerm('add', true)">كل إضافة</button>
+  <button type="button" class="btn btn-outline btn-sm" onclick="selectAllPerm('edit', true)">كل تعديل</button>
+  <button type="button" class="btn btn-outline btn-sm" onclick="selectAllPerm('delete', true)">كل حذف</button>
+  <span class="perm-toolbar-sep"></span>
+  <button type="button" class="btn btn-outline btn-sm perm-clear" onclick="selectAllPerm('all', false)">إلغاء الكل</button>
 </div>
 
+<div class="perm-groups-grid">
 {% for group in permission_groups %}
-<details class="perm-group" open>
+<details class="perm-group">
   <summary>
     <span><i class="fas {{ group.icon }}"></i> {{ group.label }}</span>
     <span class="perm-group-actions">
@@ -50,6 +52,7 @@
   </div>
 </details>
 {% endfor %}
+</div>
 
 <h4 style="margin:1.75rem 0 0.75rem;font-weight:800"><i class="fas fa-th-large"></i> اختصارات لوحة التحكم</h4>
 <p style="color:#64748b;font-size:0.9rem;margin-bottom:0.75rem">اختر الاختصارات التي تظهر للمستخدم في الصفحة الرئيسية.</p>

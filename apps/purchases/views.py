@@ -14,6 +14,7 @@ from apps.parties.models import Supplier
 from apps.inventory.models import Product, Warehouse
 from apps.pharmacy.models import Branch, PharmacyProfile
 from apps.treasury.models import Bank
+from apps.treasury.banks import banks_for_user
 from .models import PurchaseInvoice, PurchaseLine, PurchasePayment
 
 
@@ -24,12 +25,12 @@ def _next_invoice():
     return next_invoice_number(PurchaseInvoice)
 
 
-def _context_lists():
+def _context_lists(user):
     return {
         'suppliers': Supplier.objects.all().order_by('code'),
         'warehouses': Warehouse.objects.filter(is_active=True).select_related('branch').order_by('code'),
         'branches': Branch.objects.filter(is_active=True).order_by('code'),
-        'banks': Bank.objects.filter(is_active=True).order_by('code'),
+        'banks': banks_for_user(user),
     }
 
 
@@ -85,7 +86,7 @@ def supplier_lookup(request):
 @login_required
 def purchase_add(request):
     """الخطوة ١: اختيار الفرع والمخزن والمورد وبدء الفاتورة."""
-    ctx = _context_lists()
+    ctx = _context_lists(request.user)
     profile = PharmacyProfile.objects.first()
 
     if request.method == 'POST':
@@ -127,7 +128,7 @@ def purchase_form(request, pk):
         messages.warning(request, 'الفاتورة مرحّلة ولا يمكن تعديلها')
         return redirect('purchase_list')
 
-    ctx = _context_lists()
+    ctx = _context_lists(request.user)
 
     if request.method == 'POST':
         if 'add_line' in request.POST:

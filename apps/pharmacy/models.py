@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 
@@ -88,3 +89,44 @@ class ReceiptSettings(models.Model):
 
     def __str__(self):
         return 'إعدادات إيصال البيع'
+
+
+class ActivityLog(models.Model):
+    class Action(models.TextChoices):
+        LOGIN = 'login', 'تسجيل دخول'
+        LOGOUT = 'logout', 'تسجيل خروج'
+        CREATE = 'create', 'إضافة'
+        UPDATE = 'update', 'تعديل'
+        DELETE = 'delete', 'حذف'
+        POST = 'post', 'ترحيل'
+        EXPORT = 'export', 'تصدير'
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='activity_logs',
+    )
+    username = models.CharField('المستخدم', max_length=150)
+    action = models.CharField('العملية', max_length=20, choices=Action.choices)
+    section = models.CharField('القسم', max_length=80, blank=True)
+    description = models.TextField('التفاصيل', blank=True)
+    object_ref = models.CharField('المرجع', max_length=120, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    branch = models.ForeignKey(
+        'pharmacy.Branch',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='activity_logs',
+    )
+    created_at = models.DateTimeField('الوقت', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'سجل حركة'
+        verbose_name_plural = 'سجل الحركات'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.username} — {self.get_action_display()}'

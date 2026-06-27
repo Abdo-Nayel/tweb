@@ -53,6 +53,8 @@ class UserModuleAccess(models.Model):
         PURCHASES = 'purchases', 'المشتريات'
         SALES = 'sales', 'المبيعات'
         EXPENSES = 'expenses', 'المصروفات'
+        DAILY_REPORT = 'daily_report', 'تقرير يومي'
+        ACTIVITY_LOG = 'activity_log', 'سجل الحركات'
         SETTINGS = 'settings', 'الإعدادات'
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='module_access')

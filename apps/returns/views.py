@@ -14,6 +14,8 @@ from apps.inventory.models import Product, Warehouse
 from apps.parties.models import Customer, Supplier
 from apps.pharmacy.models import Branch
 from apps.treasury.models import Bank
+from apps.treasury.banks import banks_for_user
+from apps.parties.customers import active_customers
 from .models import ReturnDocument, ReturnLine, ReturnPayment
 
 
@@ -21,12 +23,12 @@ def _next_return():
     return next_invoice_number(ReturnDocument, 'return_number')
 
 
-def _context_lists():
+def _context_lists(user):
     return {
-        'customers': Customer.objects.filter(is_active=True).order_by('code'),
+        'customers': active_customers(),
         'suppliers': Supplier.objects.filter(is_active=True).order_by('code'),
         'warehouses': Warehouse.objects.filter(is_active=True).select_related('branch').order_by('code'),
-        'banks': Bank.objects.filter(is_active=True).order_by('code'),
+        'banks': banks_for_user(user),
     }
 
 
@@ -70,7 +72,7 @@ def product_lookup(request):
 
 @login_required
 def return_add(request):
-    ctx = _context_lists()
+    ctx = _context_lists(request.user)
     if request.method == 'POST':
         kind = request.POST.get('kind')
         if kind not in (ReturnDocument.Kind.SALES, ReturnDocument.Kind.PURCHASE):
@@ -134,7 +136,7 @@ def return_edit(request, pk):
     if obj.status == ReturnDocument.Status.POSTED:
         return redirect('return_detail', pk=pk)
 
-    ctx = _context_lists()
+    ctx = _context_lists(request.user)
     lines = obj.lines.select_related('product')
     payments = obj.payments.select_related('bank')
     paid = sum(p.amount for p in payments)

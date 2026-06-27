@@ -11,9 +11,11 @@ from apps.core.pagination import paginate_queryset
 from apps.core.views import delete_confirm
 from apps.core.codes import next_invoice_number, lookup_by_code
 from apps.parties.models import Customer
+from apps.parties.customers import active_customers
 from apps.inventory.models import Product, Warehouse
 from apps.pharmacy.models import Branch, PharmacyProfile, ReceiptSettings
 from apps.treasury.models import Bank
+from apps.treasury.banks import banks_for_user
 from .models import SalesInvoice, SalesLine, SalesPayment
 
 
@@ -21,12 +23,12 @@ def _next_invoice():
     return next_invoice_number(SalesInvoice)
 
 
-def _context_lists():
+def _context_lists(user):
     return {
-        'customers': Customer.objects.filter(is_active=True).order_by('code'),
+        'customers': active_customers(),
         'warehouses': Warehouse.objects.filter(is_active=True).select_related('branch').order_by('code'),
         'branches': Branch.objects.filter(is_active=True).order_by('code'),
-        'banks': Bank.objects.filter(is_active=True).order_by('code'),
+        'banks': banks_for_user(user),
     }
 
 
@@ -81,7 +83,7 @@ def customer_lookup(request):
 @login_required
 def sales_add(request):
     """الخطوة ١: بدء فاتورة بيع — نقدي أو آجل."""
-    ctx = _context_lists()
+    ctx = _context_lists(request.user)
     profile = PharmacyProfile.objects.first()
 
     if request.method == 'POST':
@@ -137,7 +139,7 @@ def sales_form(request, pk):
     if obj.status == SalesInvoice.Status.POSTED:
         return redirect('sales_detail', pk=pk)
 
-    ctx = _context_lists()
+    ctx = _context_lists(request.user)
 
     if request.method == 'POST':
         if 'add_line' in request.POST:
@@ -274,7 +276,7 @@ def sales_items_report(request):
         'page_title': 'تقرير مبيعات بالأصناف',
         'rows': page_obj,
         'page_obj': page_obj,
-        'customers': Customer.objects.filter(is_active=True).order_by('code'),
+        'customers': active_customers(),
         'date_from': date_from,
         'date_to': date_to,
         'q': q,
