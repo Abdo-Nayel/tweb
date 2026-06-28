@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 pharmacy.db
 shop.db
+shop.db-*
 media/
 staticfiles/
 *.sqlite3
