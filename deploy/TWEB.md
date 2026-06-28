@@ -43,10 +43,30 @@ git push -u tweb main
 
 ## 3) التثبيت على السيرفر
 
+**لا تستنسخ مباشرة في `/var/www/tweb`** — المجلد يحتاج sudo. استخدم أحد الطريقتين:
+
+### الطريقة الأسهل (موصى بها)
+
 ```bash
 ssh softwarehouse@162.0.237.222
 
-# تثبيت أول مرة
+git clone https://github.com/Abdo-Nayel/tweb.git ~/tweb
+cd ~/tweb
+chmod +x deploy/*.sh
+
+DB_PASSWORD='ضع-كلمة-postgres-قوية' \
+SHOP_NAME='اسم محلك' \
+bash deploy/install-tweb.sh
+```
+
+سكربت التثبيت ينشئ `/var/www/tweb` بـ sudo وينقل المشروع تلقائياً.
+
+### أو: إنشاء المجلد يدوياً ثم clone
+
+```bash
+sudo mkdir -p /var/www/tweb /var/log/tweb
+sudo chown -R softwarehouse:www-data /var/www/tweb /var/log/tweb
+
 git clone https://github.com/Abdo-Nayel/tweb.git /var/www/tweb
 cd /var/www/tweb
 chmod +x deploy/*.sh

@@ -23,9 +23,22 @@ fi
 echo "==> إيقاف الخدمة (إن وُجدت)"
 sudo systemctl stop tweb 2>/dev/null || true
 
-echo "==> PostgreSQL + خطوط عربية"
+echo "==> PostgreSQL + nginx + Python"
 sudo apt-get update -qq
-sudo apt-get install -y postgresql postgresql-contrib fonts-noto-arabic nginx git python3-venv
+sudo apt-get install -y postgresql postgresql-contrib nginx git python3-venv
+
+echo "==> خطوط عربية (اختياري — PDF)"
+_install_fonts() {
+  for pkg in fonts-noto-core fonts-noto-ui fonts-noto-extra fonts-noto fonts-noto-arabic; do
+    if apt-cache show "$pkg" &>/dev/null; then
+      sudo apt-get install -y "$pkg" && return 0
+    fi
+  done
+  echo "    تحذير: لم تُثبَّت حزمة خطوط — ضع NotoSansArabic-Regular.ttf في static/fonts/"
+  return 0
+}
+_install_fonts
+
 sudo systemctl enable postgresql nginx
 sudo systemctl start postgresql
 

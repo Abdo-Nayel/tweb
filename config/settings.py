@@ -121,7 +121,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
 ]
 
-LANGUAGE_CODE = 'ar'
+LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Africa/Cairo'
 USE_I18N = True
 USE_L10N = True
