@@ -14,7 +14,7 @@ from apps.core.permission_groups import MODULE_GROUPS
 from apps.core.dashboard_shortcuts import DASHBOARD_SHORTCUTS, DEFAULT_DASHBOARD_SHORTCUTS, SHORTCUTS_BY_KEY
 from apps.core.views import delete_confirm
 from apps.core.pagination import paginate_queryset
-from apps.pharmacy.models import PharmacyProfile, Branch, BarcodeLabelSettings, ReceiptSettings
+from apps.pharmacy.models import ShopProfile, Branch, BarcodeLabelSettings, ReceiptSettings, TelegramSettings
 from apps.treasury.models import Bank
 from apps.treasury.banks import banks_for_user
 from apps.users.models import UserModuleAccess
@@ -38,8 +38,8 @@ def settings_home(request):
 
 @login_required
 @require_module('settings', 'view')
-def pharmacy_profile_form(request):
-    profile = PharmacyProfile.objects.first()
+def shop_profile_form(request):
+    profile = ShopProfile.objects.first()
     if request.method == 'POST':
         data = {
             'name': request.POST['name'],
@@ -47,22 +47,25 @@ def pharmacy_profile_form(request):
             'phone': request.POST.get('phone', ''),
             'address': request.POST.get('address', ''),
             'tax_number': request.POST.get('tax_number', ''),
-            'currency': request.POST.get('currency', 'ج.م'),
         }
         if profile:
             for k, v in data.items():
                 setattr(profile, k, v)
             profile.save()
         else:
-            PharmacyProfile.objects.create(**data)
+            ShopProfile.objects.create(**data)
         from django.core.cache import cache
+        cache.delete('shop_profile')
         cache.delete('pharmacy_profile')
-        messages.success(request, 'تم حفظ بيانات الصيدلية')
+        messages.success(request, 'تم حفظ بيانات المحل')
         return redirect('settings_home')
-    return render(request, 'settings/pharmacy_form.html', {
-        'page_title': 'بيانات الصيدلية',
+    return render(request, 'settings/shop_form.html', {
+        'page_title': 'بيانات المحل',
         'profile': profile,
     })
+
+
+pharmacy_profile_form = shop_profile_form
 
 
 # ─── الفروع ───
@@ -308,6 +311,7 @@ def barcode_settings(request):
         settings_obj.font_size = int(request.POST.get('font_size', 10))
         settings_obj.barcode_height = int(request.POST.get('barcode_height', 40))
         settings_obj.copies_default = int(request.POST.get('copies_default', 1))
+        settings_obj.code_type = request.POST.get('code_type', 'barcode')
         settings_obj.save()
         messages.success(request, 'تم حفظ إعدادات الليبل')
         return redirect('barcode_settings')
@@ -322,11 +326,11 @@ def barcode_settings(request):
 @require_module('settings', 'view')
 def receipt_settings(request):
     settings_obj = ReceiptSettings.get_solo()
-    profile = PharmacyProfile.objects.first()
+    profile = ShopProfile.objects.first()
     if request.method == 'POST':
         settings_obj.header_text = request.POST.get('header_text', '')
         settings_obj.footer_text = request.POST.get('footer_text', '')
-        settings_obj.use_pharmacy_logo = request.POST.get('use_pharmacy_logo') == 'on'
+        settings_obj.use_shop_logo = request.POST.get('use_shop_logo') == 'on'
         settings_obj.show_logo = request.POST.get('show_logo') == 'on'
         settings_obj.paper_width_mm = int(request.POST.get('paper_width_mm', 80))
         settings_obj.title_font_size = int(request.POST.get('title_font_size', 15))
@@ -344,4 +348,30 @@ def receipt_settings(request):
         'page_title': 'إعدادات إيصال البيع',
         'settings': settings_obj,
         'profile': profile,
+    })
+
+
+# ─── تليجرام ───
+@login_required
+@require_module('settings', 'view')
+def telegram_settings(request):
+    settings_obj = TelegramSettings.get_solo()
+    if request.method == 'POST':
+        settings_obj.bot_token = request.POST.get('bot_token', '').strip()
+        settings_obj.chat_id = request.POST.get('chat_id', '').strip()
+        settings_obj.enabled = request.POST.get('enabled') == 'on'
+        settings_obj.notify_on_login = request.POST.get('notify_on_login') == 'on'
+        settings_obj.save()
+        messages.success(request, 'تم حفظ إعدادات تليجرام')
+        if request.POST.get('test') == '1':
+            from apps.core.telegram_notify import send_telegram_message
+            ok = send_telegram_message('✅ LyomasPhone — رسالة اختبار من النظام')
+            if ok:
+                messages.success(request, 'تم إرسال رسالة الاختبار')
+            else:
+                messages.error(request, 'فشل الإرسال — تحقق من Token و Chat ID')
+        return redirect('telegram_settings')
+    return render(request, 'settings/telegram_settings.html', {
+        'page_title': 'إشعارات تليجرام',
+        'settings': settings_obj,
     })

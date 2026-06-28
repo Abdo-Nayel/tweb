@@ -1,0 +1,432 @@
+/* LyomasPhone — شاشة نقطة البيع */
+
+.pos-page {
+  margin: -0.5rem -0.25rem 0;
+  min-height: calc(100vh - 120px);
+  display: flex;
+  flex-direction: column;
+}
+
+.pos-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.65rem 1rem;
+  background: linear-gradient(135deg, #1e3a5f, #2563eb);
+  border-radius: 14px;
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
+.pos-topbar-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.pos-badge-live {
+  background: rgba(34, 197, 94, 0.25);
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.pos-badge-live i { font-size: 0.5rem; vertical-align: middle; margin-left: 0.25rem; color: #4ade80; }
+.pos-badge-return {
+  background: rgba(251, 146, 60, 0.15);
+  color: #ea580c;
+  border: 1px solid rgba(251, 146, 60, 0.35);
+  font-size: 0.75rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+}
+.treasury-ops-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 1rem;
+}
+@media (max-width: 900px) {
+  .treasury-ops-grid { grid-template-columns: 1fr; }
+}
+
+.pos-inv-no { font-size: 1.15rem; }
+
+.pos-meta {
+  font-size: 0.85rem;
+  opacity: 0.85;
+  padding: 0.15rem 0.5rem;
+  background: rgba(255,255,255,0.12);
+  border-radius: 8px;
+}
+
+.pos-topbar-actions .btn { color: #fff; border-color: rgba(255,255,255,0.4); }
+.pos-topbar-actions .btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+.pos-shell {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+
+/* كتالوج */
+.pos-catalog {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+.pos-search-row { margin-bottom: 0.85rem; }
+
+.pos-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #fff;
+  border: 2px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 0 1rem;
+  transition: border-color 0.2s;
+}
+
+.pos-search-wrap:focus-within { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+.pos-search-wrap i { color: #64748b; font-size: 1.1rem; }
+
+.pos-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1.1rem;
+  padding: 0.9rem 0;
+  font-family: inherit;
+  background: transparent;
+}
+
+.pos-categories {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.pos-cat-btn {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.pos-cat-btn:hover { border-color: #2563eb; color: #2563eb; }
+.pos-cat-btn.active {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #fff;
+  border-color: transparent;
+}
+
+.pos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 0.75rem;
+  overflow-y: auto;
+  flex: 1;
+  padding: 0.25rem;
+  align-content: start;
+}
+
+.pos-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem 0.75rem;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  font-family: inherit;
+  min-height: 130px;
+}
+
+.pos-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(37,99,235,0.12);
+  border-color: #93c5fd;
+}
+
+.pos-card:active { transform: scale(0.98); }
+
+.pos-card-cat {
+  font-size: 0.65rem;
+  color: #64748b;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.pos-card-name {
+  font-weight: 800;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+
+.pos-card-spec {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+  line-height: 1.35;
+}
+
+.pos-card-price {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #2563eb;
+  margin-top: auto;
+}
+
+.pos-card-price small { font-size: 0.7rem; font-weight: 700; }
+
+.pos-card-stock {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  margin-top: 0.35rem;
+}
+
+.pos-empty-grid {
+  text-align: center;
+  color: #94a3b8;
+  padding: 2rem;
+}
+
+/* السلة */
+.pos-cart {
+  width: 360px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 24px rgba(15,23,42,0.06);
+  overflow: hidden;
+}
+
+.pos-cart-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.1rem;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9);
+  color: #fff;
+}
+
+.pos-cart-head h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.pos-cart-count {
+  background: rgba(255,255,255,0.25);
+  min-width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.pos-cart-lines {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 120px;
+  max-height: 42vh;
+  padding: 0.5rem;
+}
+
+.pos-cart-empty {
+  text-align: center;
+  color: #94a3b8;
+  padding: 2rem 1rem;
+  font-size: 0.9rem;
+}
+
+.pos-line {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.65rem 0.5rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.pos-line-info strong {
+  display: block;
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+.pos-line-info small { color: #64748b; font-size: 0.72rem; }
+
+.pos-line-qty {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 0.15rem;
+}
+
+.pos-qty-btn {
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.pos-line-total {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.pos-line-remove {
+  border: none;
+  background: #fee2e2;
+  color: #dc2626;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.pos-cart-customer {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pos-cart-customer label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.pos-totals {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #f1f5f9;
+  background: #f8fafc;
+}
+
+.pos-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.35rem 0;
+  font-size: 0.9rem;
+}
+
+.pos-discount-input {
+  width: 90px;
+  text-align: left;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.3rem 0.5rem;
+  font-weight: 700;
+}
+
+.pos-total-row.pos-grand {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #2563eb;
+  border-top: 2px dashed #cbd5e1;
+  margin-top: 0.35rem;
+  padding-top: 0.65rem;
+}
+
+.pos-checkout {
+  padding: 0.75rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.btn-pos-complete {
+  width: 100%;
+  padding: 0.95rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 4px 14px rgba(22,163,74,0.35);
+}
+
+.btn-pos-complete:hover { filter: brightness(1.05); }
+
+.btn-pos-draft {
+  width: 100%;
+  text-align: center;
+  justify-content: center;
+}
+
+.pos-advanced {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.pos-advanced summary { cursor: pointer; font-weight: 700; margin-bottom: 0.5rem; }
+
+.pos-pay-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* إخفاء عنوان الصفحة العادي — الشريط العلوي للـ POS يكفي */
+.pos-page ~ .topbar,
+.main-content:has(.pos-page) .topbar h2 {
+  /* handled via compact layout */
+}
+
+@media (max-width: 1024px) {
+  .pos-shell { flex-direction: column-reverse; }
+  .pos-cart { width: 100%; max-height: none; }
+  .pos-cart-lines { max-height: 28vh; }
+}
+
+@media (max-width: 768px) {
+  .pos-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+  .pos-topbar { border-radius: 10px; }
+}

@@ -8,7 +8,7 @@ DEFAULT_DASHBOARD_SHORTCUTS = [
 DASHBOARD_SHORTCUTS = [
     {
         'key': 'product_add',
-        'label': 'إضافة دواء جديد',
+        'label': 'إضافة منتج جديد',
         'icon': 'fa-plus',
         'icon_class': 'icon-blue',
         'url_name': 'product_add',
@@ -52,11 +52,11 @@ DASHBOARD_SHORTCUTS = [
         'perm': 'view',
     },
     {
-        'key': 'expiry_report',
-        'label': 'تقرير الصلاحيات',
-        'icon': 'fa-calendar-times',
+        'key': 'warranty_report',
+        'label': 'تقرير الضمان',
+        'icon': 'fa-shield-alt',
         'icon_class': 'icon-red',
-        'url_name': 'expiry_report',
+        'url_name': 'warranty_report',
         'module': 'stock',
         'perm': 'view',
     },

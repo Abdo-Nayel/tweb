@@ -1,0 +1,38 @@
+{% extends 'layout_app.html' %}
+{% block page_content %}
+<div class="panel">
+  <div class="panel-header panel-header-row">
+    <h3><i class="fas fa-hand-holding-usd"></i> مشتريات من أفراد</h3>
+    <a href="{% url 'buyback_add' %}" class="btn btn-primary"><i class="fas fa-plus"></i> شراء جديد</a>
+  </div>
+  <div class="panel-body">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>الرقم</th><th>التاريخ</th><th>البائع</th><th>الجهاز</th><th>السيريال</th><th>المبلغ</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td><strong>{{ item.doc_no }}</strong></td>
+          <td>{{ item.date }}</td>
+          <td>{{ item.seller_name }}<br><small>{{ item.seller_phone }}</small></td>
+          <td>{{ item.device_label|truncatechars:35 }}</td>
+          <td>{{ item.serial_number|default:"—" }}</td>
+          <td>{{ item.purchase_amount }} ج.م</td>
+          <td>
+            <a href="{% url 'buyback_detail' item.pk %}" class="btn btn-sm btn-outline">عرض</a>
+            <a href="{% url 'buyback_receipt' item.pk %}" class="btn btn-sm btn-outline" target="_blank"><i class="fas fa-receipt"></i></a>
+            <a href="{% url 'buyback_declaration' item.pk %}" class="btn btn-sm btn-outline" target="_blank"><i class="fas fa-file-alt"></i></a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-muted">لا توجد مشتريات</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% include 'partials/pagination.html' %}
+  </div>
+</div>
+{% endblock %}

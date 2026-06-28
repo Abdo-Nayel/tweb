@@ -2,27 +2,30 @@ from django.conf import settings
 from django.db import models
 
 
-class PharmacyProfile(models.Model):
-    """بيانات الصيدلية الأساسية"""
-    name = models.CharField('اسم الصيدلية', max_length=200)
+class ShopProfile(models.Model):
+    """بيانات المحل الأساسية"""
+    name = models.CharField('اسم المحل', max_length=200)
     owner_name = models.CharField('اسم المالك', max_length=120, blank=True)
     phone = models.CharField('الهاتف', max_length=30, blank=True)
     address = models.CharField('العنوان', max_length=255, blank=True)
     tax_number = models.CharField('الرقم الضريبي', max_length=50, blank=True)
     logo = models.ImageField('الشعار', upload_to='logos/', blank=True, null=True)
-    currency = models.CharField('العملة', max_length=10, default='ج.م')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = 'بيانات الصيدلية'
-        verbose_name_plural = 'بيانات الصيدلية'
+        verbose_name = 'بيانات المحل'
+        verbose_name_plural = 'بيانات المحل'
+        db_table = 'pharmacy_pharmacyprofile'
 
     def __str__(self):
         return self.name
 
 
+PharmacyProfile = ShopProfile
+
+
 class Branch(models.Model):
-    """فرع الصيدلية"""
+    """فرع المحل"""
     code = models.CharField('كود الفرع', max_length=20, unique=True)
     name = models.CharField('اسم الفرع', max_length=120)
     address = models.CharField('العنوان', max_length=255, blank=True)
@@ -40,12 +43,20 @@ class Branch(models.Model):
 
 class BarcodeLabelSettings(models.Model):
     """إعدادات طباعة ليبل الباركود"""
+
+    class CodeType(models.TextChoices):
+        BARCODE = 'barcode', 'باركود (CODE128)'
+        QR = 'qr', 'QR Code'
+
     label_width_mm = models.PositiveIntegerField('عرض الليبل (مم)', default=50)
     label_height_mm = models.PositiveIntegerField('ارتفاع الليبل (مم)', default=30)
-    show_product_name = models.BooleanField('إظهار اسم الدواء', default=True)
+    code_type = models.CharField(
+        'نوع الكود', max_length=10, choices=CodeType.choices, default=CodeType.BARCODE,
+    )
+    show_product_name = models.BooleanField('إظهار اسم المنتج', default=True)
     show_sku = models.BooleanField('إظهار كود الصنف', default=True)
     show_price = models.BooleanField('إظهار السعر', default=True)
-    show_company = models.BooleanField('إظهار الشركة', default=False)
+    show_company = models.BooleanField('إظهار الماركة', default=False)
     font_size = models.PositiveIntegerField('حجم الخط', default=10)
     barcode_height = models.PositiveIntegerField('ارتفاع الباركود', default=40)
     copies_default = models.PositiveIntegerField('عدد النسخ الافتراضي', default=1)
@@ -66,9 +77,11 @@ class BarcodeLabelSettings(models.Model):
 class ReceiptSettings(models.Model):
     """إعدادات طباعة إيصال البيع — Xprinter 80mm"""
     header_text = models.TextField('نص الهيدر', blank=True, default='شكراً لزيارتكم')
-    footer_text = models.TextField('نص الفوتر', blank=True, default='بالشفاء العاجل')
+    footer_text = models.TextField('نص الفوتر', blank=True, default='نتمنى لكم تجربة ممتعة')
     receipt_logo = models.ImageField('لوجو الإيصال', upload_to='receipts/', blank=True, null=True)
-    use_pharmacy_logo = models.BooleanField('استخدام شعار الصيدلية', default=True)
+    use_shop_logo = models.BooleanField(
+        'استخدام شعار المحل', default=True, db_column='use_pharmacy_logo',
+    )
     show_logo = models.BooleanField('إظهار اللوجو', default=True)
     paper_width_mm = models.PositiveIntegerField('عرض الورق (مم)', default=80)
     title_font_size = models.PositiveIntegerField('حجم خط العنوان', default=15)
@@ -130,3 +143,25 @@ class ActivityLog(models.Model):
 
     def __str__(self):
         return f'{self.username} — {self.get_action_display()}'
+
+
+class TelegramSettings(models.Model):
+    """إعدادات بوت تليجرام للإشعارات"""
+
+    bot_token = models.CharField('Bot Token', max_length=120, blank=True)
+    chat_id = models.CharField('Chat ID', max_length=40, blank=True)
+    enabled = models.BooleanField('تفعيل الإشعارات', default=False)
+    notify_on_login = models.BooleanField('إشعار تسجيل الدخول', default=True)
+
+    class Meta:
+        verbose_name = 'إعدادات تليجرام'
+        verbose_name_plural = 'إعدادات تليجرام'
+        db_table = 'tg_cfg'
+
+    @classmethod
+    def get_solo(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return 'إعدادات تليجرام'

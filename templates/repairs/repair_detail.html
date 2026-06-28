@@ -1,0 +1,49 @@
+{% extends 'layout_app.html' %}
+{% block page_content %}
+<div class="panel">
+  <div class="panel-header panel-header-row">
+    <h3>صيانة {{ obj.order_no }}</h3>
+    <div>
+      {% if obj.status != 'done' %}
+      <a href="{% url 'repair_complete' obj.pk %}" class="btn btn-primary"><i class="fas fa-check"></i> إكمال وتسليم</a>
+      {% endif %}
+      <a href="{% url 'repair_list' %}" class="btn btn-outline">القائمة</a>
+    </div>
+  </div>
+  <div class="panel-body">
+    <div class="detail-grid">
+      <div><strong>العميل</strong><br>{{ obj.customer_name }} — {{ obj.customer_phone }}</div>
+      <div><strong>الجهاز</strong><br>{{ obj.device_desc }}</div>
+      <div><strong>العطل</strong><br>{{ obj.problem|default:"—" }}</div>
+      <div><strong>الحالة</strong><br>{{ obj.get_status_display }}</div>
+      <div><strong>أجر الصيانة</strong><br>{{ obj.labor_fee }} ج.م</div>
+      <div><strong>قطع الغيار</strong><br>{{ obj.parts_cost }} ج.م</div>
+      <div><strong>الإجمالي</strong><br>{{ obj.total }} ج.م</div>
+      <div><strong>المدفوع / المتبقي</strong><br>{{ obj.paid }} / {{ obj.remaining }} ج.م</div>
+    </div>
+
+    {% if obj.status != 'done' %}
+    <form method="post" action="{% url 'repair_status' obj.pk %}" style="margin:1rem 0">{% csrf_token %}
+      <select name="status" class="form-control" style="max-width:220px;display:inline-block">
+        {% for val, label in status_choices %}
+        <option value="{{ val }}" {% if obj.status == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn btn-sm btn-outline">تحديث الحالة</button>
+    </form>
+    {% endif %}
+
+    <h4>قطع الغيار</h4>
+    <table class="data-table"><thead><tr><th>المصدر</th><th>البيان</th><th>الكمية</th><th>التكلفة</th></tr></thead>
+    <tbody>{% for p in parts %}
+      <tr><td>{{ p.get_source_display }}</td><td>{% if p.product %}{{ p.product.name }}{% else %}{{ p.ext_desc }}{% endif %}</td><td>{{ p.quantity }}</td><td>{{ p.line_cost }} ج.م</td></tr>
+    {% empty %}<tr><td colspan="4">—</td></tr>{% endfor %}</tbody></table>
+
+    <h4 style="margin-top:1rem">المدفوعات</h4>
+    <table class="data-table"><thead><tr><th>التاريخ</th><th>النوع</th><th>المبلغ</th><th>عربون</th></tr></thead>
+    <tbody>{% for pay in payments %}
+      <tr><td>{{ pay.created_at|date:'Y-m-d H:i' }}</td><td>{{ pay.get_payment_type_display }}</td><td>{{ pay.amount }} ج.م</td><td>{% if pay.is_deposit %}نعم{% else %}—{% endif %}</td></tr>
+    {% empty %}<tr><td colspan="4">—</td></tr>{% endfor %}</tbody></table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'layout_app.html' %}
+{% block page_content %}
+<div class="panel">
+  <div class="panel-header"><h3>استلام جهاز للصيانة</h3></div>
+  <div class="panel-body">
+    <form method="post" id="repair-form">{% csrf_token %}
+      <div class="form-grid">
+        <div class="form-group"><label>التاريخ</label><input type="date" name="date" class="form-control" value="{{ today|date:'Y-m-d' }}"></div>
+        <div class="form-group"><label>المخزن</label>
+          <select name="warehouse" class="form-control" required>{% for w in warehouses %}<option value="{{ w.pk }}">{{ w.name }}</option>{% endfor %}</select>
+        </div>
+        <div class="form-group"><label>اسم العميل</label><input name="customer_name" class="form-control" required></div>
+        <div class="form-group"><label>رقم التليفون</label><input name="customer_phone" class="form-control" required></div>
+        <div class="form-group form-span-2"><label>الجهاز</label><input name="device_desc" class="form-control" placeholder="مثال: iPhone 13 — شاشة مكسورة" required></div>
+        <div class="form-group form-span-2"><label>وصف العطل</label><textarea name="problem" class="form-control" rows="2"></textarea></div>
+        <div class="form-group"><label>أجر الصيانة (ج.م)</label><input type="number" name="labor_fee" class="form-control" step="0.01" min="0" value="0" id="labor-fee"></div>
+        <div class="form-group"><label>عربون (اختياري)</label><input type="number" name="deposit" class="form-control" step="0.01" min="0" value="0"></div>
+        <div class="form-group"><label>تحصيل العربون</label>
+          <select name="deposit_bank" class="form-control"><option value="">نقدي</option>{% for b in banks %}<option value="{{ b.pk }}">{{ b.name }}</option>{% endfor %}</select>
+        </div>
+      </div>
+
+      <h4 style="margin:1.5rem 0 0.75rem">قطع الغيار</h4>
+      <div id="parts-wrap">
+        <div class="part-row form-grid" style="margin-bottom:0.75rem;padding:0.75rem;background:#f8fafc;border-radius:8px">
+          <div class="form-group"><label>المصدر</label>
+            <select name="part_source" class="form-control part-source">
+              <option value="stock">من المخزون</option>
+              <option value="external">مورد خارجي</option>
+            </select>
+          </div>
+          <div class="form-group part-stock"><label>المنتج</label>
+            <select name="part_product" class="form-control"><option value="">—</option>{% for p in products %}<option value="{{ p.pk }}" data-cost="{{ p.cost_price }}">{{ p.name }}</option>{% endfor %}</select>
+          </div>
+          <div class="form-group part-ext" style="display:none"><label>بيان خارجي</label><input name="part_ext_desc" class="form-control" placeholder="ما تم شراؤه من الخارج"></div>
+          <div class="form-group"><label>الكمية</label><input type="number" name="part_qty" class="form-control" step="0.01" min="0" value="1"></div>
+          <div class="form-group"><label>التكلفة</label><input type="number" name="part_cost" class="form-control part-cost" step="0.01" min="0" value="0"></div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-outline btn-sm" id="add-part"><i class="fas fa-plus"></i> قطعة أخرى</button>
+
+      <div class="form-group" style="margin-top:1rem"><label>ملاحظات</label><textarea name="notes" class="form-control" rows="2"></textarea></div>
+      <div style="margin-top:1.25rem;display:flex;gap:0.5rem">
+        <button class="btn btn-primary"><i class="fas fa-save"></i> استلام وتسجيل</button>
+        <a href="{% url 'repair_list' %}" class="btn btn-outline">إلغاء</a>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+(function() {
+  const wrap = document.getElementById('parts-wrap');
+  const tpl = wrap.querySelector('.part-row').cloneNode(true);
+
+  function bindRow(row) {
+    const src = row.querySelector('.part-source');
+    const stock = row.querySelector('.part-stock');
+    const ext = row.querySelector('.part-ext');
+    const prod = row.querySelector('[name=part_product]');
+    const cost = row.querySelector('.part-cost');
+    function toggle() {
+      const isExt = src.value === 'external';
+      stock.style.display = isExt ? 'none' : '';
+      ext.style.display = isExt ? '' : 'none';
+    }
+    src.addEventListener('change', toggle);
+    prod.addEventListener('change', () => {
+      const opt = prod.selectedOptions[0];
+      if (opt && opt.dataset.cost) cost.value = opt.dataset.cost;
+    });
+    toggle();
+  }
+  bindRow(wrap.querySelector('.part-row'));
+  document.getElementById('add-part').addEventListener('click', () => {
+    const row = tpl.cloneNode(true);
+    wrap.appendChild(row);
+    bindRow(row);
+  });
+})();
+</script>
+{% endblock %}

@@ -172,6 +172,119 @@ def bank_ledger(request):
 
 
 @login_required
+def cash_operations(request):
+    from datetime import date as dt_date
+    from .models import TreasuryMovement
+
+    cash = CashBox.get_main()
+    movements = TreasuryMovement.objects.filter(
+        kind__in=(
+            TreasuryMovement.Kind.CASH_IN,
+            TreasuryMovement.Kind.CASH_OUT,
+            TreasuryMovement.Kind.CASH_TO_BANK,
+            TreasuryMovement.Kind.BANK_TO_CASH,
+        ),
+    ).select_related('bank', 'created_by').order_by('-date', '-id')[:50]
+
+    if request.method == 'POST':
+        kind = request.POST.get('kind')
+        amount = Decimal(request.POST.get('amount') or 0)
+        bank_id = request.POST.get('bank') or None
+        if kind not in dict(TreasuryMovement.Kind.choices) or amount <= 0:
+            messages.error(request, 'تحقق من نوع الحركة والمبلغ')
+            return redirect('cash_operations')
+        bank = get_object_or_404(Bank, pk=bank_id) if bank_id else None
+        try:
+            with transaction.atomic():
+                mv = TreasuryMovement.objects.create(
+                    kind=kind, bank=bank, amount=amount,
+                    date=request.POST.get('date') or dt_date.today(),
+                    notes=request.POST.get('notes', ''),
+                    created_by=request.user,
+                )
+                mv.apply()
+            messages.success(request, f'تم تسجيل {mv.get_kind_display()} — {amount} ج.م')
+        except ValueError as exc:
+            messages.error(request, str(exc))
+        return redirect('cash_operations')
+
+    return render(request, 'treasury/cash_operations.html', {
+        'page_title': 'حركات الخزنة النقدية',
+        'cash': cash,
+        'movements': movements,
+        'banks': banks_for_user(request.user),
+        'kinds': [
+            (TreasuryMovement.Kind.CASH_IN, 'إيداع نقدي'),
+            (TreasuryMovement.Kind.CASH_OUT, 'سحب نقدي'),
+            (TreasuryMovement.Kind.CASH_TO_BANK, 'تحويل إلى بنك'),
+            (TreasuryMovement.Kind.BANK_TO_CASH, 'تحويل من بنك'),
+        ],
+        'today': dt_date.today(),
+    })
+
+
+@login_required
+def bank_operations(request):
+    from datetime import date as dt_date
+    from .models import TreasuryMovement
+
+    bank_id = request.GET.get('bank') or request.POST.get('bank')
+    banks = banks_for_user(request.user)
+    bank = get_object_or_404(Bank, pk=bank_id) if bank_id else banks.first()
+
+    movements = TreasuryMovement.objects.none()
+    if bank:
+        movements = TreasuryMovement.objects.filter(
+            bank=bank,
+            kind__in=(
+                TreasuryMovement.Kind.BANK_IN,
+                TreasuryMovement.Kind.BANK_OUT,
+                TreasuryMovement.Kind.CASH_TO_BANK,
+                TreasuryMovement.Kind.BANK_TO_CASH,
+            ),
+        ).select_related('created_by').order_by('-date', '-id')[:50]
+
+    if request.method == 'POST' and bank:
+        kind = request.POST.get('kind')
+        amount = Decimal(request.POST.get('amount') or 0)
+        if kind not in (
+            TreasuryMovement.Kind.BANK_IN,
+            TreasuryMovement.Kind.BANK_OUT,
+            TreasuryMovement.Kind.CASH_TO_BANK,
+            TreasuryMovement.Kind.BANK_TO_CASH,
+        ) or amount <= 0:
+            messages.error(request, 'تحقق من نوع الحركة والمبلغ')
+            return redirect(f'{request.path}?bank={bank.pk}')
+        try:
+            with transaction.atomic():
+                mv = TreasuryMovement.objects.create(
+                    kind=kind, bank=bank, amount=amount,
+                    date=request.POST.get('date') or dt_date.today(),
+                    notes=request.POST.get('notes', ''),
+                    created_by=request.user,
+                )
+                mv.apply()
+            messages.success(request, f'تم تسجيل {mv.get_kind_display()} — {amount} ج.م')
+        except ValueError as exc:
+            messages.error(request, str(exc))
+        return redirect(f'{request.path}?bank={bank.pk}')
+
+    return render(request, 'treasury/bank_operations.html', {
+        'page_title': f'حركات البنك — {bank.name}' if bank else 'حركات البنك',
+        'bank': bank,
+        'banks': banks,
+        'movements': movements,
+        'kinds': [
+            (TreasuryMovement.Kind.BANK_IN, 'إيداع بنك'),
+            (TreasuryMovement.Kind.BANK_OUT, 'سحب بنك'),
+            (TreasuryMovement.Kind.CASH_TO_BANK, 'تحويل من الخزنة'),
+            (TreasuryMovement.Kind.BANK_TO_CASH, 'تحويل للخزنة'),
+        ],
+        'today': dt_date.today(),
+    })
+
+
+@login_required
 def treasury_ledger(request):
     """إعادة توجيه للخزنة النقدية."""
     return redirect('cash_ledger')

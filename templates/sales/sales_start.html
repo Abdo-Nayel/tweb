@@ -1,9 +1,9 @@
 {% extends 'layout_app.html' %}
 {% block page_content %}
 <div class="panel" style="max-width:720px;margin:0 auto">
-  <div class="panel-header"><h3><i class="fas fa-cash-register"></i> فاتورة بيع جديدة</h3></div>
+  <div class="panel-header"><h3><i class="fas fa-cash-register"></i> نقطة البيع — فاتورة جديدة</h3></div>
   <div class="panel-body">
-    <p style="color:#64748b;margin-bottom:1rem">اختر نوع البيع ثم المخزن واضغط <strong>بدء الفاتورة</strong>.</p>
+    <p style="color:#64748b;margin-bottom:1rem">اختر نوع البيع والمخزن ثم اضغط <strong>فتح نقطة البيع</strong>.</p>
     <form method="post" id="start-form">{% csrf_token %}
       <div class="form-grid">
         <div class="form-group full">
@@ -53,8 +53,8 @@
           </div>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary" style="margin-top:1rem">
-        <i class="fas fa-play"></i> بدء الفاتورة
+      <button type="submit" class="btn btn-primary btn-lg" style="margin-top:1rem">
+        <i class="fas fa-cash-register"></i> فتح نقطة البيع
       </button>
       <a href="{% url 'sales_list' %}" class="btn btn-outline">رجوع</a>
     </form>
@@ -69,7 +69,7 @@
           <td>{{ d.date }}</td>
           <td>{{ d.buyer_display }}</td>
           <td>{{ d.grand_total }}</td>
-          <td><a href="{% url 'sales_edit' d.pk %}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i> متابعة</a></td>
+          <td><a href="{% url 'sales_edit' d.pk %}" class="btn btn-sm btn-primary"><i class="fas fa-cash-register"></i> متابعة البيع</a></td>
         </tr>{% endfor %}</tbody>
       </table>
       <p style="margin-top:0.5rem;font-size:0.85rem;color:#64748b"><a href="{% url 'sales_list' %}">عرض كل الفواتير</a></p>

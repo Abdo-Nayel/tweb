@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}إقرار شراء {{ obj.doc_no }}{% endblock %}
+{% block extra_css %}
+<style>
+  @page { size: A4; margin: 20mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Cairo', 'Traditional Arabic', Tahoma, serif; background: #e2e8f0; direction: rtl; color: #0f172a; line-height: 1.85; }
+  .no-print { text-align: center; padding: 1rem; background: #fff; border-bottom: 1px solid #cbd5e1; }
+  .doc { width: 210mm; min-height: 297mm; max-width: 100%; margin: 0 auto; background: #fff; padding: 18mm 20mm; font-size: 15px; }
+  .doc-header { text-align: center; border-bottom: 3px double #0f172a; padding-bottom: 12px; margin-bottom: 20px; }
+  .doc-header h1 { font-size: 22px; font-weight: 800; margin: 0 0 6px; }
+  .doc-header p { margin: 0; color: #475569; font-size: 14px; }
+  .doc-title { text-align: center; font-size: 20px; font-weight: 800; margin: 24px 0 20px; text-decoration: underline; }
+  .doc-body p { margin: 0 0 14px; text-align: justify; }
+  .doc-body .field { font-weight: 800; border-bottom: 1px dotted #94a3b8; padding: 0 4px; }
+  .info-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+  .info-table th, .info-table td { border: 1px solid #cbd5e1; padding: 10px 12px; text-align: right; }
+  .info-table th { background: #f8fafc; width: 28%; font-weight: 800; }
+  .signatures { display: flex; justify-content: space-between; margin-top: 48px; gap: 24px; }
+  .sign-box { flex: 1; text-align: center; }
+  .sign-line { border-top: 1px solid #0f172a; margin-top: 56px; padding-top: 8px; font-weight: 700; }
+  .stamp-area { margin-top: 32px; text-align: center; color: #64748b; font-size: 13px; }
+  @media print { .no-print { display: none; } body { background: #fff; } .doc { box-shadow: none; } }
+</style>
+{% endblock %}
+{% block body %}
+<div class="no-print">
+  <button onclick="window.print()" style="padding:8px 20px;font-weight:700;cursor:pointer">طباعة A4</button>
+  <a href="{% url 'buyback_receipt' obj.pk %}" style="margin-right:12px">إيصال 80mm</a>
+  <a href="{% url 'buyback_detail' obj.pk %}">رجوع</a>
+</div>
+<div class="doc">
+  <div class="doc-header">
+    <h1>{% if profile %}{{ profile.name }}{% else %}محل التليفونات{% endif %}</h1>
+    <p>{% if profile %}{{ profile.address }}{% if profile.phone %} — {{ profile.phone }}{% endif %}{% endif %}</p>
+    <p>مستند رقم: <strong>{{ obj.doc_no }}</strong> — تاريخ: <strong>{{ obj.date }}</strong></p>
+  </div>
+
+  <div class="doc-title">إقرار وتعهد ببيع جهاز محمول</div>
+
+  <div class="doc-body">
+    <p>
+      أنا الموقّع أدناه / الموقّعة أدناه:
+      <span class="field">{{ obj.seller_name }}</span>
+      — حامل بطاقة رقم قومي/هوية رقم:
+      <span class="field">{{ obj.national_id }}</span>
+      — رقم الهاتف:
+      <span class="field">{{ obj.seller_phone }}</span>
+    </p>
+
+    <p>أقر وأتعهد بما يلي:</p>
+    <p>1. أنني المالك الشرعي الوحيد للجهاز المحمول الموصوف أدناه، وأنه خالٍ من أي رهن أو حجز أو نزاع ملكية.</p>
+    <p>2. أن الجهاز ليس مسروقاً ولا متحصلاً من أي عمل غير مشروع، وأتحمل كامل المسؤولية القانونية عن صحة ذلك.</p>
+    <p>3. أنني أبيع الجهاز طواعيةً لـ
+      <span class="field">{% if profile %}{{ profile.name }}{% else %}المحل{% endif %}</span>
+      مقابل مبلغ وقدره
+      <span class="field">{{ obj.purchase_amount }} جنيه مصري</span>
+      ({{ obj.get_payment_type_display }})، وقد استلمت المبلغ كاملاً.</p>
+    <p>4. أبرئ ذمة المحل من أي مطالبات أو دعاوى قانونية تتعلق بملكية الجهاز أو مصدره بعد تاريخ هذا الإقرار.</p>
+
+    <table class="info-table">
+      <tr><th>الصنف / الفئة</th><td>{{ obj.product.name }}{% if obj.product.brand %} — {{ obj.product.brand.name }}{% endif %}</td></tr>
+      {% if obj.model_name %}<tr><th>الموديل</th><td>{{ obj.model_name }}</td></tr>{% endif %}
+      {% if obj.storage %}<tr><th>السعة</th><td>{{ obj.storage }}</td></tr>{% endif %}
+      {% if obj.color %}<tr><th>اللون</th><td>{{ obj.color }}</td></tr>{% endif %}
+      <tr><th>السيريال / IMEI</th><td>{{ obj.serial_number|default:"—" }}</td></tr>
+      <tr><th>المواصفات / الحالة</th><td>{{ obj.device_specs|default:"—" }}</td></tr>
+      <tr><th>مبلغ الشراء</th><td>{{ obj.purchase_amount }} ج.م — {{ obj.get_payment_type_display }}{% if obj.bank %} ({{ obj.bank.name }}){% endif %}</td></tr>
+    </table>
+
+    <p>حرر هذا الإقرار بتاريخ <span class="field">{{ obj.date }}</span> دون إكراه أو ضغط، وأنا على علم تام بمضمونه.</p>
+  </div>
+
+  <div class="signatures">
+    <div class="sign-box">
+      <div class="sign-line">توقيع البائع<br>{{ obj.seller_name }}</div>
+    </div>
+    <div class="sign-box">
+      <div class="sign-line">توقيع المشتري (المحل)<br>{% if profile %}{{ profile.owner_name|default:profile.name }}{% else %}_______________{% endif %}</div>
+    </div>
+    <div class="sign-box">
+      <div class="sign-line">شاهد<br>_______________</div>
+    </div>
+  </div>
+
+  <div class="stamp-area">ختم المحل</div>
+</div>
+<script>if (new URLSearchParams(location.search).get('auto') === '1') window.onload = () => window.print();</script>
+{% endblock %}

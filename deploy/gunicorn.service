@@ -1,18 +1,18 @@
 [Unit]
-Description=LyomasPharmacy (Parma) Gunicorn
+Description=LyomasPharmacy (tweb) Gunicorn
 After=network.target
 
 [Service]
 User=softwarehouse
 Group=www-data
-WorkingDirectory=/var/www/parma
-EnvironmentFile=/var/www/parma/.env
-ExecStart=/var/www/parma/venv/bin/gunicorn config.wsgi:application \
+WorkingDirectory=/var/www/tweb
+EnvironmentFile=/var/www/tweb/.env
+ExecStart=/var/www/tweb/venv/bin/gunicorn config.wsgi:application \
     --bind 127.0.0.1:8001 \
     --workers 3 \
     --timeout 120 \
-    --access-logfile /var/log/parma/access.log \
-    --error-logfile /var/log/parma/error.log
+    --access-logfile /var/log/tweb/access.log \
+    --error-logfile /var/log/tweb/error.log
 Restart=always
 RestartSec=3
 

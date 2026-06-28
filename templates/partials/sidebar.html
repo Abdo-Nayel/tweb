@@ -3,8 +3,8 @@
 <nav class="sidebar" id="app-sidebar">
   <div class="sidebar-brand">
     <img src="{% static 'img/LyomasTech_Logo2.png' %}" alt="LyomasTech">
-    <h1>LyomasPharmacy</h1>
-    <p>{% if pharmacy %}{{ pharmacy.name }}{% else %}نظام محاسبة الصيدلية{% endif %}</p>
+    <h1>LyomasPhone</h1>
+    <p>{% if shop %}{{ shop.name }}{% else %}نظام إدارة محل التليفونات{% endif %}</p>
   </div>
   <div class="sidebar-user">
     <i class="fas fa-user-circle"></i> {{ user.username }}
@@ -22,13 +22,13 @@
     <div class="nav-group-items">
       <span class="nav-section-label">الإعداد</span>
       <a href="{% url 'warehouse_list' %}" class="nav-link" data-path="/inventory/warehouses"><i class="fas fa-warehouse"></i> المخازن</a>
-      <a href="{% url 'category_list' %}" class="nav-link" data-path="/inventory/categories"><i class="fas fa-layer-group"></i> الأصناف الرئيسية</a>
-      <a href="{% url 'company_list' %}" class="nav-link" data-path="/inventory/companies"><i class="fas fa-industry"></i> الشركات المنتجة</a>
-      <a href="{% url 'product_list' %}" class="nav-link" data-path="/inventory/products"><i class="fas fa-pills"></i> الأصناف الفرعية</a>
+      <a href="{% url 'category_list' %}" class="nav-link" data-path="/inventory/categories"><i class="fas fa-layer-group"></i> فئات المنتجات</a>
+      <a href="{% url 'company_list' %}" class="nav-link" data-path="/inventory/companies"><i class="fas fa-tags"></i> الماركات</a>
+      <a href="{% url 'product_list' %}" class="nav-link" data-path="/inventory/products"><i class="fas fa-mobile-alt"></i> المنتجات</a>
       <a href="{% url 'opening_stock' %}" class="nav-link" data-path="/inventory/opening-stock"><i class="fas fa-box-open"></i> رصيد افتتاحي</a>
       <span class="nav-section-label">التقارير</span>
       <a href="{% url 'stock_report' %}" class="nav-link" data-path="/inventory/stock-report"><i class="fas fa-search"></i> استعلام مخزون</a>
-      <a href="{% url 'expiry_report' %}" class="nav-link" data-path="/inventory/expiry-report"><i class="fas fa-calendar-times"></i> تقرير الصلاحيات</a>
+      <a href="{% url 'warranty_report' %}" class="nav-link" data-path="/inventory/warranty-report"><i class="fas fa-shield-alt"></i> تقرير الضمان</a>
       <a href="{% url 'stock_valuation' %}" class="nav-link" data-path="/inventory/stock-valuation"><i class="fas fa-coins"></i> تقييم المخزون</a>
     </div>
   </div>
@@ -43,6 +43,8 @@
       <a href="{% url 'supplier_list' %}" class="nav-link" data-path="/parties/suppliers"><i class="fas fa-truck"></i> الموردين</a>
       <span class="nav-section-label">الحركات</span>
       <a href="{% url 'purchase_list' %}" class="nav-link" data-path="/purchases"><i class="fas fa-cart-shopping"></i> فواتير المشتريات</a>
+      <a href="{% url 'buyback_add' %}" class="nav-link" data-path="/buyback"><i class="fas fa-hand-holding-usd"></i> شراء من فرد</a>
+      <a href="{% url 'buyback_list' %}" class="nav-link" data-path="/buyback"><i class="fas fa-list"></i> سجل مشتريات الأفراد</a>
       <a href="{% url 'supplier_payment' %}" class="nav-link" data-path="/parties/suppliers/payment"><i class="fas fa-money-bill-wave"></i> سداد مورد</a>
       <span class="nav-section-label">التقارير</span>
       <a href="{% url 'supplier_balances' %}" class="nav-link" data-path="/parties/suppliers/balances"><i class="fas fa-file-invoice-dollar"></i> أرصدة الموردين</a>
@@ -59,8 +61,11 @@
       <span class="nav-section-label">البيانات</span>
       <a href="{% url 'customer_list' %}" class="nav-link" data-path="/parties/customers"><i class="fas fa-users"></i> العملاء</a>
       <span class="nav-section-label">الحركات</span>
-      <a href="{% url 'sales_list' %}" class="nav-link" data-path="/sales"><i class="fas fa-cash-register"></i> فواتير المبيعات</a>
-      <a href="{% url 'return_list' %}" class="nav-link" data-path="/returns"><i class="fas fa-undo"></i> مرتجعات الفواتير</a>
+      <a href="{% url 'sales_add' %}" class="nav-link" data-path="/sales/add"><i class="fas fa-cash-register"></i> نقطة البيع</a>
+      <a href="{% url 'sales_list' %}" class="nav-link" data-path="/sales"><i class="fas fa-receipt"></i> فواتير المبيعات</a>
+      <a href="{% url 'return_add' %}" class="nav-link" data-path="/returns/add"><i class="fas fa-undo"></i> مرتجعات POS</a>
+      <a href="{% url 'return_list' %}" class="nav-link" data-path="/returns"><i class="fas fa-list"></i> قائمة المرتجعات</a>
+      <a href="{% url 'repair_list' %}" class="nav-link" data-path="/repairs"><i class="fas fa-tools"></i> الصيانة</a>
       <a href="{% url 'customer_payment' %}" class="nav-link" data-path="/parties/customers/payment"><i class="fas fa-hand-holding-usd"></i> تحصيل عميل</a>
       <span class="nav-section-label">التقارير</span>
       <a href="{% url 'customer_balances' %}" class="nav-link" data-path="/parties/customers/balances"><i class="fas fa-file-invoice-dollar"></i> أرصدة العملاء</a>
@@ -77,8 +82,10 @@
     </button>
     <div class="nav-group-items">
       <a href="{% url 'expense_list' %}" class="nav-link" data-path="/treasury/expenses"><i class="fas fa-money-bill-wave"></i> المصروفات</a>
-      <a href="{% url 'cash_ledger' %}" class="nav-link" data-path="/treasury/cash-ledger"><i class="fas fa-cash-register"></i> كشف الخزنة النقدية</a>
-      <a href="{% url 'bank_ledger' %}" class="nav-link" data-path="/treasury/bank-ledger"><i class="fas fa-university"></i> كشف البنوك</a>
+      <a href="{% url 'cash_operations' %}" class="nav-link" data-path="/treasury/cash"><i class="fas fa-hand-holding-usd"></i> الخزنة النقدية</a>
+      <a href="{% url 'bank_operations' %}" class="nav-link" data-path="/treasury/bank"><i class="fas fa-university"></i> حركات البنك</a>
+      <a href="{% url 'cash_ledger' %}" class="nav-link" data-path="/treasury/cash-ledger"><i class="fas fa-book"></i> كشف الخزنة</a>
+      <a href="{% url 'bank_ledger' %}" class="nav-link" data-path="/treasury/bank-ledger"><i class="fas fa-book-open"></i> كشف البنوك</a>
       <span class="nav-section-label">التقارير</span>
       {% can_access 'daily_report' 'view' as can_daily %}
       {% if can_daily %}<a href="{% url 'daily_report' %}" class="nav-link" data-path="/dashboard/reports/daily"><i class="fas fa-calendar-day"></i> تقرير يومي</a>{% endif %}
@@ -98,9 +105,10 @@
       <a href="{% url 'settings_home' %}" class="nav-link" data-path="/settings"><i class="fas fa-sliders-h"></i> الإعدادات</a>
       <a href="{% url 'bank_list' %}" class="nav-link" data-path="/settings/banks"><i class="fas fa-university"></i> البنوك</a>
       <a href="{% url 'user_list' %}" class="nav-link" data-path="/settings/users"><i class="fas fa-user-cog"></i> المستخدمون</a>
-      <a href="{% url 'barcode_settings' %}" class="nav-link" data-path="/settings/barcode"><i class="fas fa-barcode"></i> ليبل الباركود</a>
+      <a href="{% url 'telegram_settings' %}" class="nav-link" data-path="/settings/telegram"><i class="fab fa-telegram"></i> إشعارات تليجرام</a>
+      <a href="{% url 'barcode_settings' %}" class="nav-link" data-path="/settings/barcode"><i class="fas fa-barcode"></i> ليبل الباركود / QR</a>
       <a href="{% url 'receipt_settings' %}" class="nav-link" data-path="/settings/receipt"><i class="fas fa-receipt"></i> إيصال البيع</a>
-      <a href="{% url 'pharmacy_profile' %}" class="nav-link" data-path="/settings/pharmacy"><i class="fas fa-store"></i> بيانات الصيدلية</a>
+      <a href="{% url 'shop_profile' %}" class="nav-link" data-path="/settings/shop"><i class="fas fa-store"></i> بيانات المحل</a>
     </div>
   </div>
   {% endif %}

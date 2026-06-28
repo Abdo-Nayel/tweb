@@ -1,0 +1,41 @@
+{% extends 'layout_app.html' %}
+{% block page_content %}
+<div class="panel">
+  <div class="panel-header panel-header-row">
+    <h3>أوامر الصيانة</h3>
+    <a href="{% url 'repair_add' %}" class="btn btn-primary"><i class="fas fa-plus"></i> استلام جهاز</a>
+  </div>
+  <div class="panel-body">
+    <form method="get" class="filter-bar">
+      <select name="status" class="form-control" onchange="this.form.submit()">
+        <option value="">كل الحالات</option>
+        {% for val, label in statuses %}
+        <option value="{{ val }}" {% if status == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </form>
+    <table class="data-table">
+      <thead>
+        <tr><th>الرقم</th><th>التاريخ</th><th>العميل</th><th>الجهاز</th><th>الإجمالي</th><th>المدفوع</th><th>الحالة</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td><strong>{{ item.order_no }}</strong></td>
+          <td>{{ item.date }}</td>
+          <td>{{ item.customer_name }}<br><small>{{ item.customer_phone }}</small></td>
+          <td>{{ item.device_desc|truncatechars:40 }}</td>
+          <td>{{ item.total }} ج.م</td>
+          <td>{{ item.paid }} ج.م</td>
+          <td><span class="badge">{{ item.get_status_display }}</span></td>
+          <td><a href="{% url 'repair_detail' item.pk %}" class="btn btn-sm btn-outline">عرض</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-muted">لا توجد أوامر صيانة</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% include 'partials/pagination.html' %}
+  </div>
+</div>
+{% endblock %}

@@ -1,9 +1,9 @@
 {% extends 'layout_app.html' %}
 {% block page_content %}
 <div class="settings-grid">
-  <a href="{% url 'pharmacy_profile' %}" class="settings-card">
+  <a href="{% url 'shop_profile' %}" class="settings-card">
     <i class="fas fa-store"></i>
-    <h3>بيانات الصيدلية</h3>
+    <h3>بيانات المحل</h3>
     <p>الاسم والعنوان والشعار</p>
   </a>
   <a href="{% url 'bank_list' %}" class="settings-card">
@@ -25,6 +25,11 @@
     <i class="fas fa-receipt"></i>
     <h3>إيصال البيع</h3>
     <p>هيدر وفوتر ولوجو — Xprinter</p>
+  </a>
+  <a href="{% url 'telegram_settings' %}" class="settings-card">
+    <i class="fab fa-telegram"></i>
+    <h3>تليجرام</h3>
+    <p>إشعار بكل حركة في النظام</p>
   </a>
 </div>
 {% endblock %}

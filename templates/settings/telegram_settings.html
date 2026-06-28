@@ -1,0 +1,18 @@
+{% extends 'layout_app.html' %}
+{% block page_content %}
+<div class="panel"><div class="panel-header"><h3>إشعارات تليجرام</h3></div><div class="panel-body">
+<p class="text-muted" style="margin-bottom:1rem">كل حركة تُسجَّل في سجل النظام (بيع، مرتجع، صيانة، خزينة...) تُرسل كإشعار لتليجرام.</p>
+<form method="post">{% csrf_token %}
+<div class="form-grid">
+  <div class="form-group form-span-2"><label>Bot Token</label><input name="bot_token" class="form-control" value="{{ settings.bot_token }}" placeholder="123456:ABC-DEF..."></div>
+  <div class="form-group"><label>Chat ID</label><input name="chat_id" class="form-control" value="{{ settings.chat_id }}" placeholder="-1001234567890"></div>
+  <div class="form-group"><label><input type="checkbox" name="enabled" {% if settings.enabled %}checked{% endif %}> تفعيل الإشعارات</label></div>
+  <div class="form-group"><label><input type="checkbox" name="notify_on_login" {% if settings.notify_on_login %}checked{% endif %}> إشعار تسجيل الدخول</label></div>
+</div>
+<p style="margin-top:0.75rem;font-size:0.9rem;color:#64748b">أنشئ بوت عبر <strong>@BotFather</strong> ثم أرسل رسالة للبوت وافتح: <code>https://api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</code> لمعرفة Chat ID.</p>
+<button class="btn btn-primary" name="save" value="1"><i class="fas fa-save"></i> حفظ</button>
+<button class="btn btn-outline" name="test" value="1"><i class="fab fa-telegram"></i> إرسال اختبار</button>
+<a href="{% url 'settings_home' %}" class="btn btn-outline">رجوع</a>
+</form>
+</div></div>
+{% endblock %}

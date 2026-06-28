@@ -3,7 +3,7 @@ from django.db import transaction
 
 from apps.core.codes import generate_product_barcode
 from apps.parties.models import Supplier, Customer
-from apps.inventory.models import Warehouse, DrugCategory, DrugCompany, Product
+from apps.inventory.models import Warehouse, ProductCategory, Brand, Product
 from apps.pharmacy.models import Branch
 from apps.treasury.models import Bank, ExpenseCategory
 from apps.purchases.models import PurchaseInvoice
@@ -12,7 +12,7 @@ from apps.users.models import User
 
 
 MODELS = [
-    Branch, Warehouse, DrugCategory, DrugCompany, Supplier, Customer,
+    Branch, Warehouse, ProductCategory, Brand, Supplier, Customer,
     Bank, ExpenseCategory,
 ]
 

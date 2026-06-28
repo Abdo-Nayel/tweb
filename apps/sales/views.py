@@ -1,19 +1,22 @@
 from datetime import date
 from decimal import Decimal
+import json
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 
 from apps.core.pagination import paginate_queryset
 from apps.core.views import delete_confirm
 from apps.core.codes import next_invoice_number, lookup_by_code
 from apps.parties.models import Customer
 from apps.parties.customers import active_customers
-from apps.inventory.models import Product, Warehouse
-from apps.pharmacy.models import Branch, PharmacyProfile, ReceiptSettings
+from apps.inventory.models import Product, Warehouse, ProductCategory
+from apps.pharmacy.models import Branch, ShopProfile, ReceiptSettings
 from apps.treasury.models import Bank
 from apps.treasury.banks import banks_for_user
 from .models import SalesInvoice, SalesLine, SalesPayment
@@ -30,6 +33,64 @@ def _context_lists(user):
         'branches': Branch.objects.filter(is_active=True).order_by('code'),
         'banks': banks_for_user(user),
     }
+
+
+def _invoice_cart_json(obj):
+    lines = obj.lines.select_related('product', 'product__brand').order_by('id')
+    return {
+        'invoice_number': obj.invoice_number,
+        'subtotal': str(obj.subtotal),
+        'discount': str(obj.discount),
+        'grand_total': str(obj.grand_total),
+        'line_count': lines.count(),
+        'lines': [
+            {
+                'id': line.pk,
+                'product_id': line.product_id,
+                'name': line.product.name,
+                'sku': line.product.sku,
+                'brand': line.product.brand.name if line.product.brand_id else '',
+                'model': line.product.model_name or '',
+                'quantity': str(line.quantity),
+                'unit_price': str(line.unit_price),
+                'discount': str(line.discount),
+                'line_total': str(line.line_total),
+            }
+            for line in lines
+        ],
+    }
+
+
+def _products_for_pos():
+    products = Product.objects.filter(is_active=True).select_related(
+        'category', 'brand',
+    ).annotate(
+        stock_qty=Sum('stock_lots__quantity'),
+    ).order_by('category__code', 'name')
+    return [
+        {
+            'id': p.pk,
+            'name': p.name,
+            'sku': p.sku,
+            'barcode': p.barcode or '',
+            'sale_price': str(p.sale_price),
+            'category_id': p.category_id,
+            'category': p.category.name,
+            'brand': p.brand.name if p.brand_id else '',
+            'model': p.model_name or '',
+            'storage': p.storage or '',
+            'stock': str(p.stock_qty or 0),
+        }
+        for p in products
+    ]
+
+
+def _get_draft_invoice(pk, user):
+    return get_object_or_404(
+        SalesInvoice.objects.select_related('customer', 'warehouse', 'branch'),
+        pk=pk,
+        status=SalesInvoice.Status.DRAFT,
+    )
 
 
 @login_required
@@ -84,7 +145,7 @@ def customer_lookup(request):
 def sales_add(request):
     """الخطوة ١: بدء فاتورة بيع — نقدي أو آجل."""
     ctx = _context_lists(request.user)
-    profile = PharmacyProfile.objects.first()
+    profile = ShopProfile.objects.first()
 
     if request.method == 'POST':
         payment_type = request.POST.get('payment_type', 'cash')
@@ -114,19 +175,70 @@ def sales_add(request):
             warehouse_id=warehouse_id,
             date=request.POST.get('date') or date.today(),
             payment_type=payment_type,
-            currency=profile.currency if profile else 'ج.م',
             created_by=request.user,
             status=SalesInvoice.Status.DRAFT,
         )
-        messages.success(request, f'فاتورة {inv.invoice_number} — أضف الأصناف')
+        messages.success(request, f'فاتورة {inv.invoice_number} — نقطة البيع')
         return redirect('sales_edit', pk=inv.pk)
 
     return render(request, 'sales/sales_start.html', {
-        'page_title': 'فاتورة بيع جديدة',
+        'page_title': 'نقطة البيع',
         'today': date.today(),
         'open_drafts': SalesInvoice.objects.filter(status='draft').order_by('-created_at', '-id')[:10],
         **ctx,
     })
+
+
+@login_required
+@require_POST
+def sales_pos_add(request, pk):
+    obj = _get_draft_invoice(pk, request.user)
+    product = get_object_or_404(Product, pk=request.POST.get('product_id'), is_active=True)
+    qty = Decimal(request.POST.get('quantity') or 1)
+    if qty <= 0:
+        return JsonResponse({'ok': False, 'error': 'الكمية يجب أن تكون أكبر من صفر'}, status=400)
+
+    unit_price = request.POST.get('unit_price')
+    price = Decimal(unit_price) if unit_price else product.sale_price
+
+    line = obj.lines.filter(product=product).first()
+    if line:
+        line.quantity += qty
+        line.save(update_fields=['quantity'])
+    else:
+        SalesLine.objects.create(
+            invoice=obj,
+            product=product,
+            quantity=qty,
+            unit_price=price,
+            unit_cost=product.cost_price,
+        )
+    obj.recalculate()
+    return JsonResponse({'ok': True, 'cart': _invoice_cart_json(obj)})
+
+
+@login_required
+@require_POST
+def sales_pos_remove(request, pk):
+    obj = _get_draft_invoice(pk, request.user)
+    SalesLine.objects.filter(pk=request.POST.get('line_id'), invoice=obj).delete()
+    obj.recalculate()
+    return JsonResponse({'ok': True, 'cart': _invoice_cart_json(obj)})
+
+
+@login_required
+@require_POST
+def sales_pos_qty(request, pk):
+    obj = _get_draft_invoice(pk, request.user)
+    line = get_object_or_404(SalesLine, pk=request.POST.get('line_id'), invoice=obj)
+    qty = Decimal(request.POST.get('quantity') or 0)
+    if qty <= 0:
+        line.delete()
+    else:
+        line.quantity = qty
+        line.save(update_fields=['quantity'])
+    obj.recalculate()
+    return JsonResponse({'ok': True, 'cart': _invoice_cart_json(obj)})
 
 
 @login_required
@@ -168,7 +280,14 @@ def sales_form(request, pk):
         if 'save_draft' in request.POST or 'save_post' in request.POST:
             obj.notes = request.POST.get('notes', '')
             obj.discount = Decimal(request.POST.get('discount') or 0)
+            obj.walk_in_name = request.POST.get('walk_in_name', obj.walk_in_name)
+            obj.walk_in_phone = request.POST.get('walk_in_phone', obj.walk_in_phone)
+            if obj.payment_type == SalesInvoice.PaymentType.CREDIT:
+                cid = request.POST.get('customer')
+                if cid:
+                    obj.customer_id = cid
             obj.save()
+            obj.recalculate()
             obj.payments.all().delete()
             for ptype, bank_id, amount in zip(
                 request.POST.getlist('pay_type'),
@@ -186,7 +305,7 @@ def sales_form(request, pk):
 
             if 'save_post' in request.POST:
                 if not obj.lines.exists():
-                    messages.error(request, 'أضف صنفاً واحداً على الأقل')
+                    messages.error(request, 'السلة فارغة — أضف منتجاً واحداً على الأقل')
                     return redirect('sales_edit', pk=pk)
                 if obj.payment_type == SalesInvoice.PaymentType.CREDIT and not obj.customer_id:
                     messages.error(request, 'الفاتورة الآجلة تحتاج عميلاً')
@@ -194,7 +313,12 @@ def sales_form(request, pk):
                 try:
                     with transaction.atomic():
                         obj.post(user=request.user)
-                    messages.success(request, 'تم حفظ وترحيل فاتورة البيع')
+                    n = obj.lines.count()
+                    messages.success(
+                        request,
+                        f'تم إتمام البيع — فاتورة رقم {obj.invoice_number} '
+                        f'({n} صنف) بإجمالي {obj.grand_total} ج.م',
+                    )
                     receipt_settings = ReceiptSettings.get_solo()
                     if receipt_settings.auto_print:
                         from django.urls import reverse
@@ -206,18 +330,23 @@ def sales_form(request, pk):
             messages.success(request, 'تم حفظ المسودة')
             return redirect('sales_edit', pk=pk)
 
-    lines = obj.lines.select_related('product').all()
+    lines = obj.lines.select_related('product', 'product__brand').all()
     payments = obj.payments.select_related('bank').all()
     paid = sum(p.amount for p in payments)
     remaining = obj.grand_total - paid
+    categories = ProductCategory.objects.filter(is_active=True).order_by('code')
 
-    return render(request, 'sales/sales_workflow.html', {
-        'page_title': f'بيع {obj.invoice_number}',
+    return render(request, 'sales/sales_pos.html', {
+        'page_title': 'نقطة البيع',
+        'pos_mode': True,
         'obj': obj,
         'lines': lines,
         'payments': payments,
         'paid': paid,
         'remaining': remaining,
+        'categories': categories,
+        'products_json': json.dumps(_products_for_pos(), ensure_ascii=False),
+        'cart_json': json.dumps(_invoice_cart_json(obj), ensure_ascii=False),
         **ctx,
     })
 
@@ -359,13 +488,13 @@ def sales_receipt(request, pk):
     lines = obj.lines.select_related('product').all()
     payments = obj.payments.select_related('bank').all()
     paid = sum(p.amount for p in payments)
-    profile = PharmacyProfile.objects.first()
+    profile = ShopProfile.objects.first()
     receipt_cfg = ReceiptSettings.get_solo()
     logo_url = None
     if receipt_cfg.show_logo:
         if receipt_cfg.receipt_logo:
             logo_url = receipt_cfg.receipt_logo.url
-        elif receipt_cfg.use_pharmacy_logo and profile and profile.logo:
+        elif receipt_cfg.use_shop_logo and profile and profile.logo:
             logo_url = profile.logo.url
     return render(request, 'sales/sales_receipt.html', {
         'obj': obj,

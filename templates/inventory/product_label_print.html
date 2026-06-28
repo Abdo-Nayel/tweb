@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <title>ليبل — {{ product.name }}</title>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  {% if settings.code_type == 'qr' %}
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  {% endif %}
   <style>
     @page { margin: 5mm; }
     body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 8px; }
@@ -40,13 +43,22 @@
   <div class="label">
     {% if settings.show_product_name %}<div class="lbl-name">{{ product.name }}</div>{% endif %}
     {% if settings.show_sku %}<div class="lbl-sku">{{ product.sku }}</div>{% endif %}
+    {% if settings.code_type == 'qr' %}
+    <div class="qr-wrap"></div>
+    {% else %}
     <svg class="barcode"></svg>
+    {% endif %}
     {% if settings.show_price %}<div class="lbl-price">{{ product.sale_price }} ج.م</div>{% endif %}
     {% if settings.show_company and product.company %}<div class="lbl-co">{{ product.company.name }}</div>{% endif %}
   </div>
   {% endfor %}
 </div>
 <script>
+  {% if settings.code_type == 'qr' %}
+  document.querySelectorAll('.qr-wrap').forEach(el => {
+    new QRCode(el, { text: "{{ barcode_value }}", width: {{ settings.barcode_height }}, height: {{ settings.barcode_height }}, correctLevel: QRCode.CorrectLevel.M });
+  });
+  {% else %}
   document.querySelectorAll('.barcode').forEach(el => {
     JsBarcode(el, "{{ barcode_value }}", {
       format: "CODE128",
@@ -57,6 +69,7 @@
       margin: 2
     });
   });
+  {% endif %}
 </script>
 </body>
 </html>

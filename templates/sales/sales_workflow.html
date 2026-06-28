@@ -11,7 +11,7 @@
       <div><span class="lbl">المخزن</span><strong>{{ obj.warehouse.code }} — {{ obj.warehouse.name }}</strong></div>
       <div><span class="lbl">العميل</span><strong>{{ obj.buyer_display }}</strong></div>
       <div><span class="lbl">التاريخ</span><strong>{{ obj.date }}</strong></div>
-      <div><span class="lbl">الإجمالي</span><strong style="font-size:1.2rem;color:#7c3aed">{{ obj.grand_total }} {{ obj.currency }}</strong></div>
+      <div><span class="lbl">الإجمالي</span><strong style="font-size:1.2rem;color:#7c3aed">{{ obj.grand_total }} {{ currency_symbol }}</strong></div>
     </div>
   </div>
 </div>
@@ -85,7 +85,7 @@
       <p style="font-size:0.85rem;color:#64748b">
         الإجمالي: <strong>{{ obj.grand_total }}</strong> |
         المحصّل: <strong>{{ paid }}</strong> |
-        المتبقي: <strong id="remain-hint">{{ remaining }}</strong> {{ obj.currency }}
+        المتبقي: <strong id="remain-hint">{{ remaining }}</strong> {{ currency_symbol }}
         {% if obj.payment_type == 'credit' %}<br><small>المتبقي بعد الترحيل يُسجّل على حساب العميل</small>{% endif %}
       </p>
       <table class="data-table">

@@ -1,0 +1,41 @@
+{% extends 'layout_app.html' %}
+{% block page_content %}
+<div class="panel">
+  <div class="panel-header"><h3><i class="fas fa-shield-alt"></i> تقرير الضمان المنتهي / القريب</h3></div>
+  <div class="panel-body">
+    <form class="search-bar" method="get">
+      <input name="q" class="form-control" placeholder="بحث بالمنتج أو الباركود أو السيريال/IMEI..." value="{{ q }}">
+      <input name="warranty_from" type="date" class="form-control" value="{{ warranty_from }}" title="من تاريخ انتهاء الضمان">
+      <input name="warranty_to" type="date" class="form-control" value="{{ warranty_to }}" title="إلى تاريخ انتهاء الضمان">
+      <select name="warehouse" class="form-control">
+        <option value="">كل المخازن</option>
+        {% for w in warehouses %}<option value="{{ w.pk }}" {% if selected_warehouse == w.pk|stringformat:"s" %}selected{% endif %}>{{ w.code }} — {{ w.name }}</option>{% endfor %}
+      </select>
+      <button class="btn btn-primary"><i class="fas fa-filter"></i> عرض</button>
+    </form>
+    <table class="data-table" style="margin-top:1rem">
+      <thead><tr>
+        <th>المنتج</th><th>المخزن</th><th>سيريال / IMEI</th><th>نهاية الضمان</th>
+        <th>الأيام المتبقية</th><th>الكمية</th>
+      </tr></thead>
+      <tbody>{% for lot in lots %}<tr>
+        <td>{{ lot.product.sku }} — {{ lot.product.name }}</td>
+        <td>{{ lot.warehouse.code }} — {{ lot.warehouse.name }}</td>
+        <td>{{ lot.serial_number|default:"—" }}</td>
+        <td>{{ lot.warranty_end }}</td>
+        <td>
+          {% if lot.days_to_warranty_end <= 0 %}
+          <span class="badge badge-danger">منتهي ({{ lot.days_to_warranty_end }} يوم)</span>
+          {% elif lot.days_to_warranty_end <= 30 %}
+          <span class="badge badge-warning">{{ lot.days_to_warranty_end }} يوم</span>
+          {% else %}
+          <span class="badge badge-info">{{ lot.days_to_warranty_end }} يوم</span>
+          {% endif %}
+        </td>
+        <td><strong>{{ lot.quantity }}</strong></td>
+      </tr>{% empty %}<tr><td colspan="6" style="text-align:center;padding:2rem;color:#94a3b8">لا توجد أجهزة في هذه الفترة</td></tr>{% endfor %}</tbody>
+    </table>
+    {% include 'partials/pagination.html' %}
+  </div>
+</div>
+{% endblock %}

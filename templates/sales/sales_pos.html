@@ -1,0 +1,278 @@
+{% extends 'layout_app.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pos.css' %}?v={{ static_version }}">
+{% endblock %}
+{% block page_content %}
+<div class="pos-page" id="pos-app"
+  data-invoice-id="{{ obj.pk }}"
+  data-add-url="{% url 'sales_pos_add' obj.pk %}"
+  data-remove-url="{% url 'sales_pos_remove' obj.pk %}"
+  data-qty-url="{% url 'sales_pos_qty' obj.pk %}"
+  data-lookup-url="{% url 'sales_product_lookup' %}"
+  data-payment-type="{{ obj.payment_type }}">
+
+  <div class="pos-topbar">
+    <div class="pos-topbar-info">
+      <span class="pos-badge pos-badge-live"><i class="fas fa-circle"></i> نقطة بيع</span>
+      <strong class="pos-inv-no">#{{ obj.invoice_number }}</strong>
+      <span class="pos-meta">{{ obj.warehouse.name }}</span>
+      <span class="pos-meta">{{ obj.get_payment_type_display }}</span>
+      <span class="pos-meta">{{ obj.date }}</span>
+    </div>
+    <div class="pos-topbar-actions">
+      <a href="{% url 'sales_add' %}" class="btn btn-sm btn-outline"><i class="fas fa-plus"></i> فاتورة جديدة</a>
+      <a href="{% url 'sales_list' %}" class="btn btn-sm btn-outline"><i class="fas fa-list"></i> الفواتير</a>
+    </div>
+  </div>
+
+  <div class="pos-shell">
+    <!-- كتالوج المنتجات -->
+    <section class="pos-catalog">
+      <div class="pos-search-row">
+        <div class="pos-search-wrap">
+          <i class="fas fa-barcode"></i>
+          <input type="text" id="pos-search" class="pos-search-input" placeholder="باركود / كود / اسم المنتج — Enter للإضافة" autofocus>
+        </div>
+      </div>
+
+      <div class="pos-categories" id="pos-categories">
+        <button type="button" class="pos-cat-btn active" data-category="">الكل</button>
+        {% for cat in categories %}
+        <button type="button" class="pos-cat-btn" data-category="{{ cat.pk }}">{{ cat.name }}</button>
+        {% endfor %}
+      </div>
+
+      <div class="pos-grid" id="pos-grid"></div>
+      <p class="pos-empty-grid" id="pos-empty" style="display:none">لا توجد منتجات في هذه الفئة</p>
+    </section>
+
+    <!-- السلة / الفاتورة -->
+    <aside class="pos-cart">
+      <div class="pos-cart-head">
+        <h3><i class="fas fa-shopping-cart"></i> الفاتورة</h3>
+        <span class="pos-cart-count" id="cart-count">{{ lines|length }}</span>
+      </div>
+
+      <div class="pos-cart-lines" id="cart-lines">
+        <p class="pos-cart-empty" id="cart-empty">السلة فارغة — اضغط على منتج أو امسح باركود</p>
+      </div>
+
+      <div class="pos-cart-customer">
+        {% if obj.payment_type == 'credit' %}
+        <label>العميل (آجل)</label>
+        <select name="customer" form="pos-checkout" class="form-control" required>
+          <option value="">اختر العميل...</option>
+          {% for c in customers %}
+          <option value="{{ c.pk }}" {% if obj.customer_id == c.pk %}selected{% endif %}>{{ c.code }} — {{ c.name }}</option>
+          {% endfor %}
+        </select>
+        {% else %}
+        <input type="text" name="walk_in_name" form="pos-checkout" class="form-control" placeholder="اسم العميل (اختياري)" value="{{ obj.walk_in_name }}">
+        <input type="text" name="walk_in_phone" form="pos-checkout" class="form-control" placeholder="رقم الموبايل (اختياري)" value="{{ obj.walk_in_phone }}">
+        {% endif %}
+      </div>
+
+      <div class="pos-totals">
+        <div class="pos-total-row"><span>المجموع</span><span id="sum-subtotal">{{ obj.subtotal }}</span></div>
+        <div class="pos-total-row pos-discount-row">
+          <span>الخصم</span>
+          <input type="number" name="discount" form="pos-checkout" id="pos-discount" class="pos-discount-input" step="0.01" min="0" value="{{ obj.discount }}">
+        </div>
+        <div class="pos-total-row pos-grand"><span>الإجمالي</span><span id="sum-grand">{{ obj.grand_total }} ج.م</span></div>
+      </div>
+
+      <form method="post" id="pos-checkout" class="pos-checkout">
+        {% csrf_token %}
+        <input type="hidden" name="pay_type" value="cash">
+        <input type="hidden" name="pay_bank" value="">
+        <input type="hidden" name="pay_amount" id="pay-amount" value="{{ obj.grand_total }}">
+
+        <details class="pos-advanced">
+          <summary>ملاحظات أو تحصيل بنكي</summary>
+          <div class="pos-pay-row">
+            <select name="pay_type" class="form-control">
+              <option value="cash">نقدي كامل</option>
+              <option value="bank">تحويل بنك</option>
+            </select>
+            <select name="pay_bank" class="form-control">
+              <option value="">— اختر البنك —</option>
+              {% for b in banks %}<option value="{{ b.pk }}">{{ b.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <textarea name="notes" class="form-control" rows="2" placeholder="ملاحظات على الفاتورة">{{ obj.notes }}</textarea>
+        </details>
+
+        <button type="submit" name="save_post" class="btn btn-pos-complete" id="btn-complete">
+          <i class="fas fa-check-circle"></i> إتمام البيع
+        </button>
+        <button type="submit" name="save_draft" class="btn btn-outline btn-pos-draft">
+          <i class="fas fa-save"></i> حفظ مسودة
+        </button>
+      </form>
+    </aside>
+  </div>
+</div>
+
+<script>
+(function() {
+  const root = document.getElementById('pos-app');
+  const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const products = {{ products_json|safe }};
+  let cart = {{ cart_json|safe }};
+  let activeCategory = '';
+  let searchQuery = '';
+
+  const grid = document.getElementById('pos-grid');
+  const cartEl = document.getElementById('cart-lines');
+  const cartEmpty = document.getElementById('cart-empty');
+  const cartCount = document.getElementById('cart-count');
+  const sumSub = document.getElementById('sum-subtotal');
+  const sumGrand = document.getElementById('sum-grand');
+  const payAmount = document.getElementById('pay-amount');
+  const discountInput = document.getElementById('pos-discount');
+  const searchInput = document.getElementById('pos-search');
+
+  function fmt(n) { return parseFloat(n).toLocaleString('ar-EG', {minimumFractionDigits: 0, maximumFractionDigits: 2}); }
+
+  function postJson(url, data) {
+    const body = new URLSearchParams(data);
+    body.append('csrfmiddlewaretoken', csrf);
+    return fetch(url, { method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest'}, body })
+      .then(r => r.json());
+  }
+
+  function renderGrid() {
+    const q = searchQuery.trim().toLowerCase();
+    const filtered = products.filter(p => {
+      if (activeCategory && String(p.category_id) !== String(activeCategory)) return false;
+      if (!q) return true;
+      return (p.name + p.sku + p.barcode + p.brand + p.model).toLowerCase().includes(q);
+    });
+    document.getElementById('pos-empty').style.display = filtered.length ? 'none' : 'block';
+    grid.innerHTML = filtered.map(p => `
+      <button type="button" class="pos-card" data-id="${p.id}" title="${p.sku}">
+        <span class="pos-card-cat">${p.category}</span>
+        <span class="pos-card-name">${p.name}</span>
+        ${p.model || p.storage ? `<span class="pos-card-spec">${[p.brand, p.model, p.storage].filter(Boolean).join(' · ')}</span>` : `<span class="pos-card-spec">${p.brand}</span>`}
+        <span class="pos-card-price">${fmt(p.sale_price)} <small>ج.م</small></span>
+        <span class="pos-card-stock">متوفر: ${p.stock}</span>
+      </button>
+    `).join('');
+    grid.querySelectorAll('.pos-card').forEach(btn => {
+      btn.addEventListener('click', () => addProduct(btn.dataset.id));
+    });
+  }
+
+  function renderCart() {
+    cartCount.textContent = cart.line_count;
+    sumSub.textContent = fmt(cart.subtotal);
+    const disc = parseFloat(discountInput.value) || 0;
+    const grand = Math.max(parseFloat(cart.subtotal) - disc, 0);
+    sumGrand.textContent = fmt(grand) + ' ج.م';
+    payAmount.value = grand.toFixed(2);
+
+    if (!cart.lines.length) {
+      cartEmpty.style.display = 'block';
+      cartEl.querySelectorAll('.pos-line').forEach(el => el.remove());
+      return;
+    }
+    cartEmpty.style.display = 'none';
+    cartEl.querySelectorAll('.pos-line').forEach(el => el.remove());
+    cart.lines.forEach(line => {
+      const div = document.createElement('div');
+      div.className = 'pos-line';
+      div.innerHTML = `
+        <div class="pos-line-info">
+          <strong>${line.name}</strong>
+          <small>${line.sku}${line.model ? ' · ' + line.model : ''}</small>
+        </div>
+        <div class="pos-line-qty">
+          <button type="button" class="pos-qty-btn" data-action="minus" data-id="${line.id}">−</button>
+          <span>${line.quantity}</span>
+          <button type="button" class="pos-qty-btn" data-action="plus" data-id="${line.id}">+</button>
+        </div>
+        <div class="pos-line-total">${fmt(line.line_total)}</div>
+        <button type="button" class="pos-line-remove" data-id="${line.id}"><i class="fas fa-times"></i></button>
+      `;
+      cartEl.appendChild(div);
+    });
+
+    cartEl.querySelectorAll('.pos-qty-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const line = cart.lines.find(l => String(l.id) === btn.dataset.id);
+        if (!line) return;
+        let qty = parseFloat(line.quantity);
+        qty = btn.dataset.action === 'plus' ? qty + 1 : qty - 1;
+        updateQty(btn.dataset.id, qty);
+      });
+    });
+    cartEl.querySelectorAll('.pos-line-remove').forEach(btn => {
+      btn.addEventListener('click', () => removeLine(btn.dataset.id));
+    });
+  }
+
+  function applyCart(data) {
+    cart = data.cart;
+    cart.subtotal = data.cart.subtotal;
+    renderCart();
+  }
+
+  function addProduct(id, qty) {
+    postJson(root.dataset.addUrl, { product_id: id, quantity: qty || 1 })
+      .then(d => { if (d.ok) { applyCart(d); searchInput.value = ''; searchQuery = ''; renderGrid(); } else alert(d.error || 'خطأ'); })
+      .catch(() => alert('تعذّر إضافة المنتج'));
+  }
+
+  function removeLine(lineId) {
+    postJson(root.dataset.removeUrl, { line_id: lineId }).then(d => { if (d.ok) applyCart(d); });
+  }
+
+  function updateQty(lineId, qty) {
+    postJson(root.dataset.qtyUrl, { line_id: lineId, quantity: qty }).then(d => { if (d.ok) applyCart(d); });
+  }
+
+  function lookupAndAdd(q) {
+    fetch(root.dataset.lookupUrl + '?q=' + encodeURIComponent(q))
+      .then(r => r.json())
+      .then(d => {
+        if (d.found) addProduct(d.id);
+        else alert('المنتج غير موجود');
+      });
+  }
+
+  document.getElementById('pos-categories').addEventListener('click', e => {
+    const btn = e.target.closest('.pos-cat-btn');
+    if (!btn) return;
+    document.querySelectorAll('.pos-cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeCategory = btn.dataset.category;
+    renderGrid();
+  });
+
+  searchInput.addEventListener('input', () => { searchQuery = searchInput.value; renderGrid(); });
+  searchInput.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const q = searchInput.value.trim();
+    if (!q) return;
+    const exact = products.find(p => p.barcode === q || p.sku === q);
+    if (exact) addProduct(exact.id);
+    else lookupAndAdd(q);
+  });
+
+  discountInput.addEventListener('input', renderCart);
+
+  document.getElementById('pos-checkout').addEventListener('submit', e => {
+    const btn = e.submitter;
+    if (btn && btn.name === 'save_post' && !cart.lines.length) {
+      e.preventDefault();
+      alert('السلة فارغة — أضف منتجاً أولاً');
+    }
+  });
+
+  renderGrid();
+  renderCart();
+})();
+</script>
+{% endblock %}

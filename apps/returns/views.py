@@ -1,16 +1,18 @@
+import json
 from datetime import date
 from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from apps.core.codes import lookup_by_code, next_invoice_number
 from apps.core.pagination import paginate_queryset
-from apps.inventory.models import Product, Warehouse
+from apps.inventory.models import Product, Warehouse, ProductCategory
 from apps.parties.models import Customer, Supplier
 from apps.pharmacy.models import Branch
 from apps.treasury.models import Bank
@@ -30,6 +32,59 @@ def _context_lists(user):
         'warehouses': Warehouse.objects.filter(is_active=True).select_related('branch').order_by('code'),
         'banks': banks_for_user(user),
     }
+
+
+def _return_cart_json(obj):
+    lines = obj.lines.select_related('product', 'product__brand').order_by('id')
+    return {
+        'return_number': obj.return_number,
+        'subtotal': str(obj.subtotal),
+        'discount': str(obj.discount),
+        'grand_total': str(obj.grand_total),
+        'line_count': lines.count(),
+        'lines': [
+            {
+                'id': line.pk,
+                'product_id': line.product_id,
+                'name': line.product.name,
+                'sku': line.product.sku,
+                'quantity': str(line.quantity),
+                'unit_price': str(line.unit_price),
+                'line_total': str(line.line_total),
+            }
+            for line in lines
+        ],
+    }
+
+
+def _products_for_pos():
+    products = Product.objects.filter(is_active=True).select_related(
+        'category', 'brand',
+    ).annotate(stock_qty=Sum('stock_lots__quantity')).order_by('category__code', 'name')
+    return [
+        {
+            'id': p.pk,
+            'name': p.name,
+            'sku': p.sku,
+            'barcode': p.barcode or '',
+            'sale_price': str(p.sale_price),
+            'category_id': p.category_id,
+            'category': p.category.name,
+            'brand': p.brand.name if p.brand_id else '',
+            'model': p.model_name or '',
+            'storage': p.storage or '',
+            'stock': str(p.stock_qty or 0),
+        }
+        for p in products
+    ]
+
+
+def _get_draft_return(pk):
+    return get_object_or_404(
+        ReturnDocument.objects.select_related('warehouse', 'customer', 'supplier'),
+        pk=pk,
+        status=ReturnDocument.Status.DRAFT,
+    )
 
 
 @login_required
@@ -128,6 +183,52 @@ def return_add(request):
 
 
 @login_required
+@require_POST
+def return_pos_add(request, pk):
+    obj = _get_draft_return(pk)
+    product = get_object_or_404(Product, pk=request.POST.get('product_id'), is_active=True)
+    qty = Decimal(request.POST.get('quantity') or 1)
+    if qty <= 0:
+        return JsonResponse({'ok': False, 'error': 'الكمية يجب أن تكون أكبر من صفر'}, status=400)
+    unit_price = request.POST.get('unit_price')
+    price = Decimal(unit_price) if unit_price else product.sale_price
+    line = obj.lines.filter(product=product).first()
+    if line:
+        line.quantity += qty
+        line.save(update_fields=['quantity'])
+    else:
+        ReturnLine.objects.create(
+            document=obj, product=product, quantity=qty, unit_price=price,
+        )
+    obj.recalculate()
+    return JsonResponse({'ok': True, 'cart': _return_cart_json(obj)})
+
+
+@login_required
+@require_POST
+def return_pos_remove(request, pk):
+    obj = _get_draft_return(pk)
+    ReturnLine.objects.filter(pk=request.POST.get('line_id'), document=obj).delete()
+    obj.recalculate()
+    return JsonResponse({'ok': True, 'cart': _return_cart_json(obj)})
+
+
+@login_required
+@require_POST
+def return_pos_qty(request, pk):
+    obj = _get_draft_return(pk)
+    line = get_object_or_404(ReturnLine, pk=request.POST.get('line_id'), document=obj)
+    qty = Decimal(request.POST.get('quantity') or 0)
+    if qty <= 0:
+        line.delete()
+    else:
+        line.quantity = qty
+        line.save(update_fields=['quantity'])
+    obj.recalculate()
+    return JsonResponse({'ok': True, 'cart': _return_cart_json(obj)})
+
+
+@login_required
 def return_edit(request, pk):
     obj = get_object_or_404(
         ReturnDocument.objects.select_related('warehouse', 'customer', 'supplier'),
@@ -143,32 +244,19 @@ def return_edit(request, pk):
     remaining = obj.grand_total - paid
 
     if request.method == 'POST':
-        if 'add_line' in request.POST:
-            product = get_object_or_404(Product, pk=request.POST['product_id'])
-            qty = Decimal(request.POST.get('quantity') or 0)
-            price = Decimal(request.POST.get('unit_price') or 0)
-            if qty <= 0:
-                messages.error(request, 'الكمية يجب أن تكون أكبر من صفر')
-            else:
-                ReturnLine.objects.create(
-                    document=obj,
-                    product=product,
-                    quantity=qty,
-                    unit_price=price,
-                    batch_number=request.POST.get('batch_number', ''),
-                    expiry_date=request.POST.get('expiry_date') or None,
-                )
-                obj.recalculate()
-                messages.success(request, f'تمت إضافة {product.name}')
-            return redirect('return_edit', pk=pk)
-
-        if 'remove_line' in request.POST:
-            ReturnLine.objects.filter(pk=request.POST['line_id'], document=obj).delete()
-            obj.recalculate()
-            return redirect('return_edit', pk=pk)
-
         obj.discount = Decimal(request.POST.get('discount') or 0)
         obj.notes = request.POST.get('notes', '')
+        if obj.kind == ReturnDocument.Kind.SALES:
+            obj.walk_in_name = request.POST.get('walk_in_name', obj.walk_in_name)
+            obj.walk_in_phone = request.POST.get('walk_in_phone', obj.walk_in_phone)
+            cid = request.POST.get('customer')
+            if cid:
+                obj.customer_id = cid
+        else:
+            sid = request.POST.get('supplier')
+            if sid:
+                obj.supplier_id = sid
+        obj.save()
         obj.recalculate()
 
         obj.payments.all().delete()
@@ -205,8 +293,9 @@ def return_edit(request, pk):
         messages.success(request, 'تم حفظ المسودة')
         return redirect('return_edit', pk=pk)
 
-    refund_label = 'استرداد' if obj.kind == ReturnDocument.Kind.SALES else 'تحصيل'
-    return render(request, 'returns/return_workflow.html', {
+    refund_label = 'استرداد للعميل' if obj.kind == ReturnDocument.Kind.SALES else 'تحصيل من المورد'
+    categories = ProductCategory.objects.filter(is_active=True).order_by('code')
+    return render(request, 'returns/return_pos.html', {
         'page_title': f'{obj.return_number} — مرتجع',
         'obj': obj,
         'lines': lines,
@@ -214,6 +303,9 @@ def return_edit(request, pk):
         'paid': paid,
         'remaining': remaining,
         'refund_label': refund_label,
+        'categories': categories,
+        'products_json': json.dumps(_products_for_pos(), ensure_ascii=False),
+        'cart_json': json.dumps(_return_cart_json(obj), ensure_ascii=False),
         **ctx,
     })
 

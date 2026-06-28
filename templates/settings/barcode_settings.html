@@ -3,12 +3,18 @@
 <div class="panel"><div class="panel-header"><h3>إعدادات ليبل الباركود</h3></div><div class="panel-body">
 <form method="post">{% csrf_token %}
 <div class="form-grid">
+  <div class="form-group"><label>نوع الكود</label>
+    <select name="code_type" class="form-control">
+      <option value="barcode" {% if settings.code_type == 'barcode' %}selected{% endif %}>باركود (CODE128)</option>
+      <option value="qr" {% if settings.code_type == 'qr' %}selected{% endif %}>QR Code</option>
+    </select>
+  </div>
   <div class="form-group"><label>عرض الليبل (مم)</label><input name="label_width_mm" type="number" class="form-control" value="{{ settings.label_width_mm }}"></div>
   <div class="form-group"><label>ارتفاع الليبل (مم)</label><input name="label_height_mm" type="number" class="form-control" value="{{ settings.label_height_mm }}"></div>
   <div class="form-group"><label>حجم الخط</label><input name="font_size" type="number" class="form-control" value="{{ settings.font_size }}"></div>
   <div class="form-group"><label>ارتفاع الباركود</label><input name="barcode_height" type="number" class="form-control" value="{{ settings.barcode_height }}"></div>
   <div class="form-group"><label>عدد النسخ الافتراضي</label><input name="copies_default" type="number" class="form-control" value="{{ settings.copies_default }}"></div>
-  <div class="form-group"><label><input type="checkbox" name="show_product_name" {% if settings.show_product_name %}checked{% endif %}> إظهار اسم الدواء</label></div>
+  <div class="form-group"><label><input type="checkbox" name="show_product_name" {% if settings.show_product_name %}checked{% endif %}> إظهار اسم المنتج</label></div>
   <div class="form-group"><label><input type="checkbox" name="show_sku" {% if settings.show_sku %}checked{% endif %}> إظهار كود الصنف</label></div>
   <div class="form-group"><label><input type="checkbox" name="show_price" {% if settings.show_price %}checked{% endif %}> إظهار السعر</label></div>
   <div class="form-group"><label><input type="checkbox" name="show_company" {% if settings.show_company %}checked{% endif %}> إظهار الشركة</label></div>
@@ -20,7 +26,7 @@
 <div class="label-preview-box" style="margin-top:2rem">
   <h4 style="margin-bottom:0.75rem;font-weight:800">معاينة الليبل</h4>
   <div class="barcode-label-preview" style="width:{{ settings.label_width_mm }}mm;min-height:{{ settings.label_height_mm }}mm;font-size:{{ settings.font_size }}px">
-    {% if settings.show_product_name %}<div class="lbl-name">اسم الدواء (مثال)</div>{% endif %}
+    {% if settings.show_product_name %}<div class="lbl-name">اسم المنتج (مثال)</div>{% endif %}
     {% if settings.show_sku %}<div class="lbl-sku">1</div>{% endif %}
     <svg class="lbl-barcode-preview" height="{{ settings.barcode_height }}"></svg>
     {% if settings.show_price %}<div class="lbl-price">25.00 ج.م</div>{% endif %}

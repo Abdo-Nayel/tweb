@@ -1,0 +1,32 @@
+{% extends 'layout_app.html' %}
+{% block page_content %}
+<div class="panel">
+  <div class="panel-header panel-header-row">
+    <h3>شراء {{ obj.doc_no }}</h3>
+    <div>
+      <a href="{% url 'buyback_receipt' obj.pk %}" class="btn btn-success" target="_blank"><i class="fas fa-receipt"></i> إيصال</a>
+      <a href="{% url 'buyback_declaration' obj.pk %}" class="btn btn-primary" target="_blank"><i class="fas fa-file-alt"></i> إقرار A4</a>
+      <a href="{% url 'buyback_list' %}" class="btn btn-outline">القائمة</a>
+    </div>
+  </div>
+  <div class="panel-body">
+    <div class="detail-grid">
+      <div><strong>التاريخ</strong><br>{{ obj.date }}</div>
+      <div><strong>المخزن</strong><br>{{ obj.warehouse.name }}</div>
+      <div><strong>البائع</strong><br>{{ obj.seller_name }}</div>
+      <div><strong>التليفون</strong><br>{{ obj.seller_phone }}</div>
+      <div><strong>رقم البطاقة</strong><br>{{ obj.national_id }}</div>
+      <div><strong>السيريال</strong><br>{{ obj.serial_number|default:"—" }}</div>
+      <div><strong>الصنف</strong><br>{{ obj.product.name }}</div>
+      <div><strong>المبلغ</strong><br>{{ obj.purchase_amount }} ج.م ({{ obj.get_payment_type_display }})</div>
+      <div class="form-span-2"><strong>المواصفات</strong><br>{{ obj.device_specs|default:"—" }}{% if obj.model_name %} — {{ obj.model_name }}{% endif %}{% if obj.storage %} {{ obj.storage }}{% endif %}{% if obj.color %} {{ obj.color }}{% endif %}</div>
+    </div>
+    {% if obj.id_card_photo %}
+    <div style="margin-top:1.25rem">
+      <strong>صورة البطاقة</strong><br>
+      <a href="{{ obj.id_card_photo.url }}" target="_blank"><img src="{{ obj.id_card_photo.url }}" alt="بطاقة" style="max-width:320px;margin-top:0.5rem;border-radius:8px;border:1px solid #e2e8f0"></a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

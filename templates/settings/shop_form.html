@@ -1,0 +1,15 @@
+{% extends 'layout_app.html' %}
+{% block page_content %}
+<div class="panel"><div class="panel-header"><h3>بيانات المحل</h3></div><div class="panel-body">
+<form method="post">{% csrf_token %}
+<div class="form-grid">
+  <div class="form-group"><label>اسم المحل *</label><input name="name" class="form-control" required value="{{ profile.name|default:'' }}"></div>
+  <div class="form-group"><label>اسم المالك</label><input name="owner_name" class="form-control" value="{{ profile.owner_name|default:'' }}"></div>
+  <div class="form-group"><label>الهاتف</label><input name="phone" class="form-control" value="{{ profile.phone|default:'' }}"></div>
+  <div class="form-group full"><label>العنوان</label><input name="address" class="form-control" value="{{ profile.address|default:'' }}"></div>
+  <div class="form-group"><label>الرقم الضريبي</label><input name="tax_number" class="form-control" value="{{ profile.tax_number|default:'' }}"></div>
+</div>
+<button class="btn btn-primary"><i class="fas fa-save"></i> حفظ</button>
+<a href="{% url 'settings_home' %}" class="btn btn-outline">رجوع</a>
+</form></div></div>
+{% endblock %}

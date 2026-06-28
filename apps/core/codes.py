@@ -42,6 +42,6 @@ def generate_product_barcode(product):
     """
     cat = _numeric_value(product.category.code)
     sub = _numeric_value(getattr(product, 'code', None) or product.sku) or product.pk
-    co = _numeric_value(product.company.code)
+    co = _numeric_value(product.brand.code)
     seq = product.pk
     return f"{cat}{sub:03d}{co:03d}{seq:04d}"

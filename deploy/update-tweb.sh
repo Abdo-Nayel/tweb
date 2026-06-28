@@ -1,8 +1,8 @@
 #!/bin/bash
-# تحديث سريع على السيرفر بعد git pull
+# تحديث LyomasPhone على tweb بعد git pull
 set -euo pipefail
 
-APP_DIR="/var/www/pweb"
+APP_DIR="/var/www/tweb"
 cd "$APP_DIR"
 
 echo "==> git pull"
@@ -17,7 +17,7 @@ python manage.py migrate --noinput
 python manage.py collectstatic --noinput --clear
 
 echo "==> restart"
-sudo systemctl restart pweb
+sudo systemctl restart tweb
 sudo systemctl reload nginx
 
-echo "تم التحديث. امسح كاش المتصفح (Ctrl+Shift+R) لو الشكل لسه قديم."
+echo "تم التحديث على tweb.erpbylyomastech.com"

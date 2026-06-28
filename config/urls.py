@@ -13,6 +13,8 @@ urlpatterns = [
     path('purchases/', include('apps.purchases.urls')),
     path('sales/', include('apps.sales.urls')),
     path('returns/', include('apps.returns.urls')),
+    path('repairs/', include('apps.repairs.urls')),
+    path('buyback/', include('apps.buyback.urls')),
     path('treasury/', include('apps.treasury.urls')),
 ]
 

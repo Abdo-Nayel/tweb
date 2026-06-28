@@ -12,7 +12,7 @@ from apps.core.views import delete_confirm
 from apps.core.delete_checks import purchase_invoice_blockers
 from apps.parties.models import Supplier
 from apps.inventory.models import Product, Warehouse
-from apps.pharmacy.models import Branch, PharmacyProfile
+from apps.pharmacy.models import Branch, ShopProfile
 from apps.treasury.models import Bank
 from apps.treasury.banks import banks_for_user
 from .models import PurchaseInvoice, PurchaseLine, PurchasePayment
@@ -87,7 +87,7 @@ def supplier_lookup(request):
 def purchase_add(request):
     """الخطوة ١: اختيار الفرع والمخزن والمورد وبدء الفاتورة."""
     ctx = _context_lists(request.user)
-    profile = PharmacyProfile.objects.first()
+    profile = ShopProfile.objects.first()
 
     if request.method == 'POST':
         branch_id = request.POST.get('branch') or None
@@ -103,7 +103,6 @@ def purchase_add(request):
             supplier_id=supplier_id,
             warehouse_id=warehouse_id,
             date=request.POST.get('date') or date.today(),
-            currency=profile.currency if profile else 'ج.م',
             created_by=request.user,
             status=PurchaseInvoice.Status.DRAFT,
         )
@@ -183,10 +182,23 @@ def purchase_form(request, pk):
                 try:
                     with transaction.atomic():
                         obj.post(user=request.user)
-                    messages.success(request, 'تم حفظ وترحيل الفاتورة — المخزون والمورد محدّثان')
+                    line_count = obj.lines.count()
+                    messages.success(
+                        request,
+                        f'تم ترحيل فاتورة مشتريات رقم {obj.invoice_number} بنجاح. '
+                        f'أُضيف {line_count} صنف إلى مخزن «{obj.warehouse.name}» '
+                        f'وتم تحديث حساب المورد «{obj.supplier.name}» '
+                        f'بإجمالي {obj.grand_total} ج.م.',
+                    )
                     return redirect('purchase_list')
-                except Exception as e:
+                except ValueError as e:
                     messages.error(request, str(e))
+                    return redirect('purchase_edit', pk=pk)
+                except Exception:
+                    messages.error(
+                        request,
+                        'تعذّر ترحيل الفاتورة. تأكد من صحة الأصناف والكميات وحاول مرة أخرى.',
+                    )
                     return redirect('purchase_edit', pk=pk)
             messages.success(request, 'تم حفظ المسودة')
             return redirect('purchase_edit', pk=pk)

@@ -1,4 +1,5 @@
 from django.db import models
+from django.db import transaction
 from django.conf import settings
 
 
@@ -89,3 +90,79 @@ class CashBox(models.Model):
 
     def __str__(self):
         return f'{self.name} ({self.balance})'
+
+
+class TreasuryMovement(models.Model):
+    """حركة خزينة — إيداع/سحب/تحويل — جدول tr_mv"""
+
+    class Kind(models.TextChoices):
+        CASH_IN = 'cash_in', 'إيداع نقدي'
+        CASH_OUT = 'cash_out', 'سحب نقدي'
+        BANK_IN = 'bank_in', 'إيداع بنك'
+        BANK_OUT = 'bank_out', 'سحب بنك'
+        CASH_TO_BANK = 'c2b', 'تحويل نقد → بنك'
+        BANK_TO_CASH = 'b2c', 'تحويل بنك → نقد'
+
+    kind = models.CharField('النوع', max_length=10, choices=Kind.choices, db_column='k')
+    bank = models.ForeignKey(
+        Bank, on_delete=models.PROTECT, null=True, blank=True,
+        verbose_name='البنك', related_name='movements', db_column='bank_id',
+    )
+    amount = models.DecimalField('المبلغ', max_digits=14, decimal_places=2, db_column='amt')
+    date = models.DateField('التاريخ', db_column='dt')
+    notes = models.CharField('ملاحظات', max_length=255, blank=True, db_column='nt')
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+        related_name='treasury_movements', db_column='uid',
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_column='crt')
+
+    class Meta:
+        db_table = 'tr_mv'
+        verbose_name = 'حركة خزينة'
+        verbose_name_plural = 'حركات الخزينة'
+        ordering = ['-date', '-id']
+
+    def __str__(self):
+        return f'{self.get_kind_display()} — {self.amount}'
+
+    @transaction.atomic
+    def apply(self):
+        cash = CashBox.get_main()
+        amt = self.amount
+        if self.kind == self.Kind.CASH_IN:
+            cash.balance += amt
+            cash.save(update_fields=['balance'])
+        elif self.kind == self.Kind.CASH_OUT:
+            if cash.balance < amt:
+                raise ValueError('رصيد الخزنة غير كافٍ')
+            cash.balance -= amt
+            cash.save(update_fields=['balance'])
+        elif self.kind in (self.Kind.BANK_IN, self.Kind.BANK_OUT):
+            if not self.bank_id:
+                raise ValueError('اختر البنك')
+            if self.kind == self.Kind.BANK_IN:
+                self.bank.balance += amt
+            else:
+                if self.bank.balance < amt:
+                    raise ValueError('رصيد البنك غير كافٍ')
+                self.bank.balance -= amt
+            self.bank.save(update_fields=['balance'])
+        elif self.kind == self.Kind.CASH_TO_BANK:
+            if not self.bank_id:
+                raise ValueError('اختر البنك')
+            if cash.balance < amt:
+                raise ValueError('رصيد الخزنة غير كافٍ')
+            cash.balance -= amt
+            self.bank.balance += amt
+            cash.save(update_fields=['balance'])
+            self.bank.save(update_fields=['balance'])
+        elif self.kind == self.Kind.BANK_TO_CASH:
+            if not self.bank_id:
+                raise ValueError('اختر البنك')
+            if self.bank.balance < amt:
+                raise ValueError('رصيد البنك غير كافٍ')
+            self.bank.balance -= amt
+            cash.balance += amt
+            self.bank.save(update_fields=['balance'])
+            cash.save(update_fields=['balance'])

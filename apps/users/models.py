@@ -5,7 +5,7 @@ from django.db import models
 class User(AbstractUser):
     class Role(models.TextChoices):
         ADMIN = 'admin', 'مدير'
-        PHARMACIST = 'pharmacist', 'صيدلي'
+        STORE_MANAGER = 'store_manager', 'مدير فرع'
         CASHIER = 'cashier', 'كاشير'
         ACCOUNTANT = 'accountant', 'محاسب'
 
@@ -44,9 +44,9 @@ class UserModuleAccess(models.Model):
     class Module(models.TextChoices):
         DASHBOARD = 'dashboard', 'لوحة التحكم'
         WAREHOUSES = 'warehouses', 'المخازن'
-        CATEGORIES = 'categories', 'الأصناف الرئيسية'
-        COMPANIES = 'companies', 'الشركات المنتجة'
-        PRODUCTS = 'products', 'الأصناف الفرعية'
+        CATEGORIES = 'categories', 'فئات المنتجات'
+        COMPANIES = 'companies', 'الماركات'
+        PRODUCTS = 'products', 'المنتجات'
         STOCK = 'stock', 'المخزون والأرصدة'
         SUPPLIERS = 'suppliers', 'الموردين'
         CUSTOMERS = 'customers', 'العملاء'

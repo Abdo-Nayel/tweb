@@ -7,6 +7,13 @@
       <strong>مرتجع مبيعات:</strong> إدخال للمخزون + استرداد نقدي/بنكي &nbsp;|&nbsp;
       <strong>مرتجع مشتريات:</strong> خروج من المخزون + تحصيل نقدي/بنكي
     </p>
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:1rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem">
+      <div>
+        <strong style="color:#1d4ed8"><i class="fas fa-hand-holding-usd"></i> شراء من عميل خارجي؟</strong>
+        <p style="margin:0.25rem 0 0;color:#64748b;font-size:0.9rem">شراء جهاز مستعمل — إدخال مخزون + إيصال + إقرار A4 + صورة بطاقة</p>
+      </div>
+      <a href="{% url 'buyback_add' %}" class="btn btn-primary"><i class="fas fa-mobile-alt"></i> مشتريات من فرد</a>
+    </div>
     <form method="post">{% csrf_token %}
       <div class="form-grid">
         <div class="form-group full">

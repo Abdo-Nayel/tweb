@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}إيصال شراء {{ obj.doc_no }}{% endblock %}
+{% block extra_css %}
+<style>
+  @page { size: 80mm auto; margin: 2mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Cairo', Tahoma, sans-serif; background: #f1f5f9; direction: rtl; }
+  .no-print { text-align: center; padding: 1rem; background: #fff; border-bottom: 1px solid #e2e8f0; }
+  .receipt { width: 80mm; max-width: 100%; margin: 0 auto; background: #fff; padding: 4mm 3mm; font-size: 12px; font-weight: 700; line-height: 1.5; }
+  .receipt-title { text-align: center; font-size: 15px; font-weight: 800; margin-bottom: 2mm; }
+  .receipt-sub { text-align: center; font-size: 11px; color: #475569; margin-bottom: 3mm; }
+  .divider { border-top: 2px dashed #0f172a; margin: 3mm 0; }
+  .row { display: flex; justify-content: space-between; gap: 2mm; margin: 1.5mm 0; }
+  .row strong { font-weight: 800; }
+  .grand { font-size: 14px; margin-top: 2mm; }
+  @media print { .no-print { display: none; } body { background: #fff; } }
+</style>
+{% endblock %}
+{% block body %}
+<div class="no-print">
+  <button onclick="window.print()" class="btn btn-primary">طباعة</button>
+  <a href="{% url 'buyback_declaration' obj.pk %}">إقرار A4</a>
+  <a href="{% url 'buyback_detail' obj.pk %}">رجوع</a>
+</div>
+<div class="receipt">
+  <div class="receipt-title">{% if profile %}{{ profile.name }}{% else %}LyomasPhone{% endif %}</div>
+  <div class="receipt-sub">إيصال شراء جهاز من فرد<br>مستند رقم {{ obj.doc_no }}</div>
+  <div class="divider"></div>
+  <div class="row"><span>التاريخ</span><strong>{{ obj.date }}</strong></div>
+  <div class="row"><span>البائع</span><strong>{{ obj.seller_name }}</strong></div>
+  <div class="row"><span>التليفون</span><strong>{{ obj.seller_phone }}</strong></div>
+  <div class="row"><span>رقم البطاقة</span><strong>{{ obj.national_id }}</strong></div>
+  <div class="divider"></div>
+  <div class="row"><span>الصنف</span><strong>{{ obj.product.name }}</strong></div>
+  {% if obj.model_name %}<div class="row"><span>الموديل</span><strong>{{ obj.model_name }}</strong></div>{% endif %}
+  {% if obj.serial_number %}<div class="row"><span>السيريال</span><strong>{{ obj.serial_number }}</strong></div>{% endif %}
+  {% if obj.device_specs %}<div style="margin:2mm 0;font-size:11px">{{ obj.device_specs }}</div>{% endif %}
+  <div class="divider"></div>
+  <div class="row grand"><span>مبلغ الشراء</span><strong>{{ obj.purchase_amount }} ج.م</strong></div>
+  <div class="row"><span>الدفع</span><strong>{{ obj.get_payment_type_display }}{% if obj.bank %} — {{ obj.bank.name }}{% endif %}</strong></div>
+  <div class="divider"></div>
+  <div class="receipt-sub" style="margin-top:3mm">استلمت أنا الموقّع أدناه المبلغ المذكور مقابل الجهاز<br>توقيع البائع: _______________</div>
+  {% if profile and profile.phone %}<div class="receipt-sub">{{ profile.phone }}</div>{% endif %}
+</div>
+{% if request.GET.auto == '1' %}<script>window.onload = () => window.print();</script>{% endif %}
+{% endblock %}

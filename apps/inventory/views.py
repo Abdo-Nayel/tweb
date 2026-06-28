@@ -12,7 +12,7 @@ from apps.core.delete_checks import (
     warehouse_blockers, category_blockers, company_blockers, product_blockers,
 )
 from apps.pharmacy.models import Branch, BarcodeLabelSettings
-from .models import Warehouse, DrugCategory, DrugCompany, Product, StockLot, StockMovement
+from .models import Warehouse, ProductCategory, Brand, Product, StockLot, StockMovement
 from .services import apply_stock_movement
 
 
@@ -81,18 +81,18 @@ def warehouse_delete(request, pk):
 @login_required
 def category_list(request):
     q = request.GET.get('q', '')
-    items = DrugCategory.objects.all()
+    items = ProductCategory.objects.all()
     if q:
         items = items.filter(Q(name__icontains=q) | Q(code__icontains=q))
-    return render(request, 'inventory/category_list.html', {'page_title': 'الأصناف الرئيسية', 'items': items, 'q': q})
+    return render(request, 'inventory/category_list.html', {'page_title': 'فئات المنتجات', 'items': items, 'q': q})
 
 
 @login_required
 def category_form(request, pk=None):
-    obj = get_object_or_404(DrugCategory, pk=pk) if pk else None
+    obj = get_object_or_404(ProductCategory, pk=pk) if pk else None
     if request.method == 'POST':
         data = {
-            'code': request.POST.get('code') or _next_code(DrugCategory, 'CAT'),
+            'code': request.POST.get('code') or _next_code(ProductCategory, 'CAT'),
             'name': request.POST['name'],
             'description': request.POST.get('description', ''),
             'is_active': request.POST.get('is_active') == 'on',
@@ -103,13 +103,13 @@ def category_form(request, pk=None):
             obj.save()
             messages.success(request, 'تم التحديث')
         else:
-            DrugCategory.objects.create(**data)
+            ProductCategory.objects.create(**data)
             messages.success(request, 'تم الإضافة')
         return redirect('category_list')
     return render(request, 'inventory/category_form.html', {
-        'page_title': 'تعديل صنف رئيسي' if obj else 'إضافة صنف رئيسي',
+        'page_title': 'تعديل فئة' if obj else 'إضافة فئة منتج',
         'obj': obj,
-        'suggested_code': obj.code if obj else _next_code(DrugCategory, 'CAT'),
+        'suggested_code': obj.code if obj else _next_code(ProductCategory, 'CAT'),
     })
 
 
@@ -117,18 +117,18 @@ def category_form(request, pk=None):
 @login_required
 def company_list(request):
     q = request.GET.get('q', '')
-    items = DrugCompany.objects.all()
+    items = Brand.objects.all()
     if q:
         items = items.filter(name__icontains=q)
-    return render(request, 'inventory/company_list.html', {'page_title': 'الشركات المنتجة', 'items': items, 'q': q})
+    return render(request, 'inventory/company_list.html', {'page_title': 'الماركات', 'items': items, 'q': q})
 
 
 @login_required
 def company_form(request, pk=None):
-    obj = get_object_or_404(DrugCompany, pk=pk) if pk else None
+    obj = get_object_or_404(Brand, pk=pk) if pk else None
     if request.method == 'POST':
         data = {
-            'code': request.POST.get('code') or _next_code(DrugCompany, 'CO'),
+            'code': request.POST.get('code') or _next_code(Brand, 'CO'),
             'name': request.POST['name'],
             'country': request.POST.get('country', ''),
             'phone': request.POST.get('phone', ''),
@@ -140,13 +140,13 @@ def company_form(request, pk=None):
             obj.save()
             messages.success(request, 'تم التحديث')
         else:
-            DrugCompany.objects.create(**data)
+            Brand.objects.create(**data)
             messages.success(request, 'تم الإضافة')
         return redirect('company_list')
     return render(request, 'inventory/company_form.html', {
-        'page_title': 'تعديل شركة' if obj else 'إضافة شركة منتجة',
+        'page_title': 'تعديل ماركة' if obj else 'إضافة ماركة',
         'obj': obj,
-        'suggested_code': obj.code if obj else _next_code(DrugCompany, 'CO'),
+        'suggested_code': obj.code if obj else _next_code(Brand, 'CO'),
     })
 
 
@@ -154,14 +154,14 @@ def company_form(request, pk=None):
 @login_required
 def product_list(request):
     q = request.GET.get('q', '')
-    items = Product.objects.select_related('category', 'company').annotate(
+    items = Product.objects.select_related('category', 'brand').annotate(
         total_qty=Sum('stock_lots__quantity')
     )
     if q:
         items = items.filter(Q(name__icontains=q) | Q(sku__icontains=q) | Q(barcode__icontains=q))
     page_obj = paginate_queryset(request, items, per_page=50)
     return render(request, 'inventory/product_list.html', {
-        'page_title': 'الأصناف الفرعية',
+        'page_title': 'المنتجات',
         'items': page_obj,
         'page_obj': page_obj,
         'q': q,
@@ -171,20 +171,26 @@ def product_list(request):
 @login_required
 def product_form(request, pk=None):
     obj = get_object_or_404(Product, pk=pk) if pk else None
-    categories = DrugCategory.objects.filter(is_active=True)
-    companies = DrugCompany.objects.filter(is_active=True)
+    categories = ProductCategory.objects.filter(is_active=True)
+    brands = Brand.objects.filter(is_active=True)
     if request.method == 'POST':
         data = {
             'sku': request.POST.get('sku') or _next_code(Product, '', 'sku'),
             'name': request.POST['name'],
             'category_id': request.POST['category'],
-            'company_id': request.POST['company'],
-            'unit': request.POST.get('unit', 'box'),
+            'brand_id': request.POST['brand'],
+            'model_name': request.POST.get('model_name', ''),
+            'storage': request.POST.get('storage', ''),
+            'color': request.POST.get('color', ''),
+            'condition': request.POST.get('condition', 'new'),
+            'is_serialized': request.POST.get('is_serialized') == 'on',
+            'unit': request.POST.get('unit', 'piece'),
             'barcode': request.POST.get('barcode', ''),
             'cost_price': request.POST.get('cost_price', 0) or 0,
             'sale_price': request.POST.get('sale_price', 0) or 0,
             'min_stock': request.POST.get('min_stock', 0) or 0,
             'max_stock': request.POST.get('max_stock', 0) or 0,
+            'warranty_months': request.POST.get('warranty_months', 12) or 12,
             'notes': request.POST.get('notes', ''),
             'is_active': request.POST.get('is_active') == 'on',
         }
@@ -192,17 +198,19 @@ def product_form(request, pk=None):
             for k, v in data.items():
                 setattr(obj, k, v)
             obj.save()
-            messages.success(request, 'تم تحديث الصنف')
+            messages.success(request, 'تم تحديث المنتج')
         else:
             Product.objects.create(**data, created_by=request.user)
-            messages.success(request, 'تم إضافة الصنف')
+            messages.success(request, 'تم إضافة المنتج')
         return redirect('product_list')
     return render(request, 'inventory/product_form.html', {
-        'page_title': 'تعديل صنف' if obj else 'إضافة صنف فرعي',
+        'page_title': 'تعديل منتج' if obj else 'إضافة منتج',
         'obj': obj,
         'categories': categories,
-        'companies': companies,
+        'brands': brands,
+        'companies': brands,
         'units': Product.Unit.choices,
+        'conditions': Product.Condition.choices,
         'suggested_sku': obj.sku if obj else _next_code(Product, '', 'sku'),
     })
 
@@ -283,7 +291,7 @@ def stock_report(request):
         'rows': page_obj,
         'page_obj': page_obj,
         'warehouses': Warehouse.objects.filter(is_active=True).order_by('code'),
-        'categories': DrugCategory.objects.filter(is_active=True).order_by('code'),
+        'categories': ProductCategory.objects.filter(is_active=True).order_by('code'),
         'products': products_qs,
         'q': q,
         'selected_category': category_id,
@@ -293,24 +301,24 @@ def stock_report(request):
 
 
 @login_required
-def expiry_report(request):
-    """تقرير صلاحيات قريبة من الانتهاء."""
+def warranty_report(request):
+    """تقرير ضمان قريب من الانتهاء."""
     today = date.today()
     lots = StockLot.objects.select_related(
         'product', 'product__category', 'warehouse',
-    ).filter(quantity__gt=0, expiry_date__isnull=False)
+    ).filter(quantity__gt=0, warranty_end__isnull=False)
 
-    expiry_from = request.GET.get('expiry_from')
-    expiry_to = request.GET.get('expiry_to')
+    warranty_from = request.GET.get('warranty_from')
+    warranty_to = request.GET.get('warranty_to')
     warehouse_id = request.GET.get('warehouse')
     q = request.GET.get('q', '').strip()
 
-    if not expiry_from:
-        expiry_from = today.isoformat()
-    if not expiry_to:
-        expiry_to = (today + timedelta(days=90)).isoformat()
+    if not warranty_from:
+        warranty_from = today.isoformat()
+    if not warranty_to:
+        warranty_to = (today + timedelta(days=90)).isoformat()
 
-    lots = lots.filter(expiry_date__gte=expiry_from, expiry_date__lte=expiry_to)
+    lots = lots.filter(warranty_end__gte=warranty_from, warranty_end__lte=warranty_to)
     if warehouse_id:
         lots = lots.filter(warehouse_id=warehouse_id)
     if q:
@@ -318,23 +326,26 @@ def expiry_report(request):
             Q(product__name__icontains=q)
             | Q(product__sku__icontains=q)
             | Q(product__barcode__icontains=q)
-            | Q(batch_number__icontains=q)
+            | Q(serial_number__icontains=q)
         )
 
-    lots = lots.order_by('expiry_date', 'product__name')
+    lots = lots.order_by('warranty_end', 'product__name')
     page_obj = paginate_queryset(request, lots, per_page=50)
 
-    return render(request, 'inventory/expiry_report.html', {
-        'page_title': 'تقرير صلاحيات منتهية / قريبة',
+    return render(request, 'inventory/warranty_report.html', {
+        'page_title': 'تقرير الضمان المنتهي / القريب',
         'lots': page_obj,
         'page_obj': page_obj,
         'warehouses': Warehouse.objects.filter(is_active=True).order_by('code'),
-        'expiry_from': expiry_from,
-        'expiry_to': expiry_to,
+        'warranty_from': warranty_from,
+        'warranty_to': warranty_to,
         'selected_warehouse': warehouse_id,
         'q': q,
         'today': today,
     })
+
+
+expiry_report = warranty_report
 
 
 @login_required
@@ -414,7 +425,7 @@ def stock_valuation(request):
         'page_obj': page_obj,
         'group_by': group_by,
         'warehouses': Warehouse.objects.filter(is_active=True).order_by('code'),
-        'categories': DrugCategory.objects.filter(is_active=True).order_by('code'),
+        'categories': ProductCategory.objects.filter(is_active=True).order_by('code'),
         'selected_warehouse': warehouse_id,
         'selected_category': category_id,
         'total_qty': total_qty,
@@ -426,16 +437,16 @@ def stock_valuation(request):
 @login_required
 def category_delete(request, pk):
     return delete_confirm(
-        request, DrugCategory, pk, category_blockers, 'category_list', 'categories',
-        object_label=lambda o: o.name, page_title='حذف صنف رئيسي',
+        request, ProductCategory, pk, category_blockers, 'category_list', 'categories',
+        object_label=lambda o: o.name, page_title='حذف فئة',
     )
 
 
 @login_required
 def company_delete(request, pk):
     return delete_confirm(
-        request, DrugCompany, pk, company_blockers, 'company_list', 'companies',
-        object_label=lambda o: o.name, page_title='حذف شركة',
+        request, Brand, pk, company_blockers, 'company_list', 'companies',
+        object_label=lambda o: o.name, page_title='حذف ماركة',
     )
 
 
@@ -443,14 +454,14 @@ def company_delete(request, pk):
 def product_delete(request, pk):
     return delete_confirm(
         request, Product, pk, product_blockers, 'product_list', 'products',
-        object_label=lambda o: o.name, page_title='حذف صنف',
+        object_label=lambda o: o.name, page_title='حذف منتج',
     )
 
 
 @login_required
 @require_module('products', 'view')
 def product_label_print(request, pk):
-    product = get_object_or_404(Product.objects.select_related('company'), pk=pk)
+    product = get_object_or_404(Product.objects.select_related('brand'), pk=pk)
     label_settings = BarcodeLabelSettings.get_solo()
     copies = int(request.GET.get('copies', label_settings.copies_default))
     copies = max(1, min(copies, 100))

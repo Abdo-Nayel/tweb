@@ -1,5 +1,5 @@
 """
-Django settings for LyomasPharmacy — development & production.
+Django settings for LyomasPhone — development & production.
 Copy deploy/.env.example to .env and adjust before deploying.
 """
 import os
@@ -26,7 +26,7 @@ def _env_list(name: str, default: str = '') -> list[str]:
 
 SECRET_KEY = os.environ.get(
     'DJANGO_SECRET_KEY',
-    'lyomas-pharmacy-dev-key-change-in-production',
+    'lyomas-phone-dev-key-change-in-production',
 )
 DEBUG = _env_bool('DJANGO_DEBUG', True)
 ALLOWED_HOSTS = _env_list('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,*')
@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'apps.sales',
     'apps.returns',
     'apps.treasury',
+    'apps.repairs',
+    'apps.buyback',
 ]
 
 MIDDLEWARE = [
@@ -75,7 +77,7 @@ TEMPLATES = [{
             'django.template.context_processors.request',
             'django.contrib.auth.context_processors.auth',
             'django.contrib.messages.context_processors.messages',
-            'apps.pharmacy.context_processors.pharmacy_info',
+            'apps.pharmacy.context_processors.shop_info',
         ],
     },
 }]
@@ -97,7 +99,7 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'pharmacy.db',
+            'NAME': BASE_DIR / 'shop.db',
             'OPTIONS': {'timeout': 20},
         }
     }
@@ -105,7 +107,7 @@ else:
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'lyomas-pharmacy',
+        'LOCATION': 'lyomas-phone',
     }
 }
 
@@ -145,7 +147,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 PROJECT_VENDOR = 'LyomasTech'
-PROJECT_NAME = 'LyomasPharmacy'
+PROJECT_NAME = 'LyomasPhone'
+CURRENCY_SYMBOL = 'ج.م'
 
 MESSAGE_TAGS = {
     messages_constants.DEBUG: 'secondary',

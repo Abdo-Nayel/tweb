@@ -129,7 +129,7 @@
   <div class="receipt-logo"><img src="{{ logo_url }}" alt="logo"></div>
   {% endif %}
 
-  <div class="receipt-title">{% if profile %}{{ profile.name }}{% else %}LyomasPharmacy{% endif %}</div>
+  <div class="receipt-title">{% if profile %}{{ profile.name }}{% else %}LyomasPhone{% endif %}</div>
   {% if profile and profile.address %}<div class="pharmacy-info">{{ profile.address }}{% if profile.phone %} — {{ profile.phone }}{% endif %}</div>{% endif %}
 
   {% if receipt.header_text %}<div class="receipt-sub">{{ receipt.header_text }}</div>{% endif %}
@@ -137,7 +137,7 @@
   <div class="divider"></div>
 
   <div class="meta-row"><span>فاتورة #{{ obj.invoice_number }}</span><span>{{ obj.date }}</span></div>
-  <div class="meta-row"><span>{{ obj.get_payment_type_display }}</span><span>{{ obj.currency }}</span></div>
+  <div class="meta-row"><span>{{ obj.get_payment_type_display }}</span><span>{{ currency_symbol }}</span></div>
   {% if receipt.show_customer %}
   <div class="meta-row"><span>العميل</span><span>{{ obj.receipt_buyer_display }}</span></div>
   {% endif %}
@@ -169,7 +169,7 @@
   <div class="totals">
     <div class="row"><span>المجموع</span><span>{{ obj.subtotal }}</span></div>
     {% if receipt.show_discount and obj.discount %}<div class="row"><span>خصم</span><span>{{ obj.discount }}</span></div>{% endif %}
-    <div class="row grand"><span>الإجمالي</span><span>{{ obj.grand_total }} {{ obj.currency }}</span></div>
+    <div class="row grand"><span>الإجمالي</span><span>{{ obj.grand_total }} {{ currency_symbol }}</span></div>
     {% if paid %}<div class="row"><span>المدفوع</span><span>{{ paid }}</span></div>{% endif %}
     {% if change %}<div class="row"><span>الباقي</span><span>{{ change }}</span></div>{% endif %}
     {% if obj.payment_type == 'credit' and remaining > 0 %}

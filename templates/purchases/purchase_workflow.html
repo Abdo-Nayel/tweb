@@ -34,8 +34,8 @@
         <div class="form-group"><label>الكمية *</label><input name="quantity" type="number" step="0.01" class="form-control" required></div>
         <div class="form-group"><label>سعر الشراء *</label><input name="unit_cost" id="unit-cost" type="number" step="0.01" class="form-control" required></div>
         <div class="form-group"><label>سعر البيع</label><input name="sale_price" id="sale-price" type="number" step="0.01" class="form-control"></div>
-        <div class="form-group"><label>تاريخ الانتهاء</label><input name="expiry_date" type="date" class="form-control"></div>
-        <div class="form-group"><label>رقم التشغيلة</label><input name="batch_number" class="form-control"></div>
+        <div class="form-group"><label>نهاية الضمان</label><input name="expiry_date" type="date" class="form-control"></div>
+        <div class="form-group"><label>سيريال / IMEI</label><input name="batch_number" class="form-control" placeholder="اختياري للإكسسوارات"></div>
       </div>
       <button type="submit" name="add_line" id="btn-add-line" class="btn btn-success" style="display:none;margin-top:0.5rem">
         <i class="fas fa-plus"></i> إضافة للفاتورة
@@ -48,7 +48,7 @@
 <div class="panel">
   <div class="panel-header">
     <h3>بنود الفاتورة ({{ lines|length }})</h3>
-    <span style="font-weight:800">الإجمالي: {{ obj.grand_total }} {{ obj.currency }}</span>
+    <span style="font-weight:800">الإجمالي: {{ obj.grand_total }} {{ currency_symbol }}</span>
   </div>
   <div class="panel-body" style="padding:0">
     <table class="data-table">
@@ -88,7 +88,7 @@
       <div class="form-group full"><label>بيان / ملاحظات</label><textarea name="notes" class="form-control" rows="2">{{ obj.notes }}</textarea></div>
 
       <h4 style="margin:1rem 0 0.5rem;font-weight:800;font-size:0.95rem">سداد (اختياري)</h4>
-      <p style="font-size:0.85rem;color:#64748b">المتبقي على المورد بعد السداد: <strong id="remain-hint">{{ remaining }}</strong> {{ obj.currency }}</p>
+      <p style="font-size:0.85rem;color:#64748b">المتبقي على المورد بعد السداد: <strong id="remain-hint">{{ remaining }}</strong> {{ currency_symbol }}</p>
       <table class="data-table">
         <thead><tr><th>نوع</th><th>البنك</th><th>المبلغ</th></tr></thead>
         <tbody id="payments-body">

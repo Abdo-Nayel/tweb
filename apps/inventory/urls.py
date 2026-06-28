@@ -21,6 +21,7 @@ urlpatterns = [
     path('products/<int:pk>/label/', views.product_label_print, name='product_label_print'),
     path('opening-stock/', views.opening_stock, name='opening_stock'),
     path('stock-report/', views.stock_report, name='stock_report'),
-    path('expiry-report/', views.expiry_report, name='expiry_report'),
+    path('warranty-report/', views.warranty_report, name='warranty_report'),
+    path('expiry-report/', views.warranty_report, name='expiry_report'),
     path('stock-valuation/', views.stock_valuation, name='stock_valuation'),
 ]

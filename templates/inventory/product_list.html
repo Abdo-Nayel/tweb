@@ -2,14 +2,15 @@
 {% load access_tags %}
 {% block page_content %}
 <div class="panel">
-  <div class="panel-header"><h3>الأصناف الفرعية — الأدوية</h3>{% can_access 'products' 'add' as can_add %}{% if can_add %}<a href="{% url 'product_add' %}" class="btn btn-sm btn-success"><i class="fas fa-plus"></i> إضافة دواء</a>{% endif %}</div>
+  <div class="panel-header"><h3>المنتجات — أجهزة وإكسسوارات</h3>{% can_access 'products' 'add' as can_add %}{% if can_add %}<a href="{% url 'product_add' %}" class="btn btn-sm btn-success"><i class="fas fa-plus"></i> إضافة منتج</a>{% endif %}</div>
   <div class="panel-body">
     <form class="search-bar" method="get"><input name="q" class="form-control" placeholder="بحث بالاسم أو الكود أو الباركود..." value="{{ q }}"><button class="btn btn-primary"><i class="fas fa-search"></i></button></form>
     <table class="data-table">
-      <thead><tr><th>الكود</th><th>الدواء</th><th>المجموعة</th><th>الشركة</th><th>التكلفة</th><th>البيع</th><th>الرصيد</th><th></th></tr></thead>
+      <thead><tr><th>الكود</th><th>المنتج</th><th>الفئة</th><th>الماركة</th><th>الموديل</th><th>التكلفة</th><th>البيع</th><th>الرصيد</th><th></th></tr></thead>
       <tbody>{% for item in items %}<tr>
         <td>{{ item.sku }}</td><td><strong>{{ item.name }}</strong></td>
-        <td>{{ item.category.name }}</td><td>{{ item.company.name }}</td>
+        <td>{{ item.category.name }}</td><td>{{ item.brand.name }}</td>
+        <td>{{ item.model_name|default:"—" }}</td>
         <td>{{ item.cost_price }}</td><td>{{ item.sale_price }}</td>
         <td>{% if item.total_qty <= item.min_stock %}<span class="badge badge-danger">{{ item.total_qty|default:0 }}</span>{% else %}<span class="badge badge-success">{{ item.total_qty|default:0 }}</span>{% endif %}</td>
         <td class="row-actions">{% can_access 'products' 'edit' as ce %}{% can_access 'products' 'delete' as cd %}
@@ -17,7 +18,7 @@
           {% if ce %}<a href="{% url 'product_edit' item.pk %}" class="btn btn-sm btn-outline" title="تعديل"><i class="fas fa-edit"></i></a>{% endif %}
           {% if cd %}<a href="{% url 'product_delete' item.pk %}" class="btn btn-sm btn-danger" title="حذف"><i class="fas fa-trash"></i></a>{% endif %}
         </td>
-      </tr>{% empty %}<tr><td colspan="8" style="text-align:center;padding:2rem;color:#94a3b8">لا توجد أصناف</td></tr>{% endfor %}</tbody>
+      </tr>{% empty %}<tr><td colspan="9" style="text-align:center;padding:2rem;color:#94a3b8">لا توجد منتجات</td></tr>{% endfor %}</tbody>
     </table>
     {% include 'partials/pagination.html' %}
   </div>

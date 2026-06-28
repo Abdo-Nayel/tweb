@@ -1,0 +1,23 @@
+{% extends 'layout_app.html' %}
+{% block page_content %}
+<div class="panel">
+  <div class="panel-header"><h3>إكمال صيانة {{ obj.order_no }}</h3></div>
+  <div class="panel-body">
+    <p>العميل: <strong>{{ obj.customer_name }}</strong> — المتبقي: <strong>{{ obj.remaining }} ج.م</strong></p>
+    <form method="post">{% csrf_token %}
+      <div class="form-grid">
+        <div class="form-group"><label>المبلغ المحصّل</label><input type="number" name="amount" class="form-control" step="0.01" min="0" value="{{ obj.remaining }}"></div>
+        <div class="form-group"><label>طريقة الدفع</label>
+          <select name="pay_type" class="form-control"><option value="cash">نقدي</option><option value="bank">بنك</option></select>
+        </div>
+        <div class="form-group"><label>البنك</label>
+          <select name="bank" class="form-control"><option value="">—</option>{% for b in banks %}<option value="{{ b.pk }}">{{ b.name }}</option>{% endfor %}</select>
+        </div>
+      </div>
+      <p class="text-muted" style="margin-top:0.75rem">سيتم تغيير الحالة إلى «مكتمل» بعد التأكيد.</p>
+      <button class="btn btn-primary"><i class="fas fa-check-circle"></i> تأكيد الإكمال</button>
+      <a href="{% url 'repair_detail' obj.pk %}" class="btn btn-outline">رجوع</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

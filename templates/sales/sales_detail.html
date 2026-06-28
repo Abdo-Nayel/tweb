@@ -10,7 +10,7 @@
       <div><span class="lbl">العميل</span><strong>{{ obj.buyer_display }}</strong></div>
       <div><span class="lbl">المخزن</span><strong>{{ obj.warehouse.code }} — {{ obj.warehouse.name }}</strong></div>
       <div><span class="lbl">التاريخ</span><strong>{{ obj.date }}</strong></div>
-      <div><span class="lbl">الإجمالي</span><strong>{{ obj.grand_total }} {{ obj.currency }}</strong></div>
+      <div><span class="lbl">الإجمالي</span><strong>{{ obj.grand_total }} {{ currency_symbol }}</strong></div>
       {% if obj.status == 'posted' %}
       <div><span class="lbl">التكلفة</span><strong>{{ obj.total_cost }}</strong></div>
       <div><span class="lbl">صافي الربح</span><strong style="color:#16a34a">{{ obj.gross_profit }}</strong></div>

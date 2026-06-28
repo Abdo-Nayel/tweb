@@ -3,14 +3,14 @@
 <div class="panel"><div class="panel-header"><h3><i class="fas fa-receipt"></i> إعدادات إيصال البيع (Xprinter)</h3></div><div class="panel-body">
 <form method="post" enctype="multipart/form-data">{% csrf_token %}
 <div class="form-grid">
-  <div class="form-group full"><label>نص الهيدر (تحت اسم الصيدلية)</label><textarea name="header_text" class="form-control" rows="2">{{ settings.header_text }}</textarea></div>
+  <div class="form-group full"><label>نص الهيدر (تحت اسم المحل)</label><textarea name="header_text" class="form-control" rows="2">{{ settings.header_text }}</textarea></div>
   <div class="form-group full"><label>نص الفوتر (أسفل الإيصال)</label><textarea name="footer_text" class="form-control" rows="2">{{ settings.footer_text }}</textarea></div>
   <div class="form-group"><label>عرض الورق (مم) — Xprinter</label><input name="paper_width_mm" type="number" class="form-control" value="{{ settings.paper_width_mm }}"></div>
   <div class="form-group"><label>حجم خط العنوان</label><input name="title_font_size" type="number" class="form-control" value="{{ settings.title_font_size }}"></div>
   <div class="form-group"><label>حجم خط المحتوى</label><input name="body_font_size" type="number" class="form-control" value="{{ settings.body_font_size }}"></div>
   <div class="form-group full"><label>لوجو الإيصال (اختياري)</label><input type="file" name="receipt_logo" class="form-control" accept="image/*">{% if settings.receipt_logo %}<small>الحالي: {{ settings.receipt_logo.name }}</small>{% endif %}</div>
   <div class="form-group"><label><input type="checkbox" name="show_logo" {% if settings.show_logo %}checked{% endif %}> إظهار اللوجو</label></div>
-  <div class="form-group"><label><input type="checkbox" name="use_pharmacy_logo" {% if settings.use_pharmacy_logo %}checked{% endif %}> استخدام شعار الصيدلية إن لم يُرفع لوجو</label></div>
+  <div class="form-group"><label><input type="checkbox" name="use_shop_logo" {% if settings.use_shop_logo %}checked{% endif %}> استخدام شعار المحل إن لم يُرفع لوجو</label></div>
   <div class="form-group"><label><input type="checkbox" name="show_cashier" {% if settings.show_cashier %}checked{% endif %}> إظهار الكاشير</label></div>
   <div class="form-group"><label><input type="checkbox" name="show_customer" {% if settings.show_customer %}checked{% endif %}> إظهار بيانات العميل</label></div>
   <div class="form-group"><label><input type="checkbox" name="show_discount" {% if settings.show_discount %}checked{% endif %}> إظهار الخصم</label></div>
@@ -25,13 +25,13 @@
     <h4 style="font-weight:800;margin-bottom:0.75rem">معاينة الإيصال</h4>
     <div style="width:{{ settings.paper_width_mm }}mm;max-width:100%;background:#fff;border:2px dashed #cbd5e1;padding:4mm;font-family:Cairo,sans-serif;font-weight:800;font-size:{{ settings.body_font_size }}px;direction:rtl">
       {% if settings.show_logo %}<div style="text-align:center;margin-bottom:2mm;font-size:10px;color:#94a3b8">[لوجو]</div>{% endif %}
-      <div style="text-align:center;font-size:{{ settings.title_font_size }}px;font-weight:800">{% if profile %}{{ profile.name }}{% else %}الصيدلية{% endif %}</div>
+      <div style="text-align:center;font-size:{{ settings.title_font_size }}px;font-weight:800">{% if profile %}{{ profile.name }}{% else %}محل التليفونات{% endif %}</div>
       {% if settings.header_text %}<div style="text-align:center;margin:2mm 0;white-space:pre-line">{{ settings.header_text }}</div>{% endif %}
       <div style="border-top:2px dashed #000;margin:2mm 0"></div>
       <div style="display:flex;justify-content:space-between"><span>فاتورة #1</span><span>25/06/2026</span></div>
       <div style="border-top:1px dotted #ccc;margin:2mm 0"></div>
-      <div>باراسيتامول × 2 = 50</div>
-      <div style="border-top:2px solid #000;margin-top:2mm;padding-top:2mm;display:flex;justify-content:space-between;font-size:{{ settings.title_font_size|add:"-1" }}px"><span>الإجمالي</span><span>50 ج.م</span></div>
+      <div>iPhone 15 Pro × 1 = 45,000</div>
+      <div style="border-top:2px solid #000;margin-top:2mm;padding-top:2mm;display:flex;justify-content:space-between;font-size:{{ settings.title_font_size|add:"-1" }}px"><span>الإجمالي</span><span>45,000 ج.م</span></div>
       {% if settings.footer_text %}<div style="text-align:center;margin-top:3mm;white-space:pre-line">{{ settings.footer_text }}</div>{% endif %}
     </div>
   </div>

@@ -4,7 +4,8 @@ from . import settings_views
 
 urlpatterns = [
     path('', settings_views.settings_home, name='settings_home'),
-    path('pharmacy/', settings_views.pharmacy_profile_form, name='pharmacy_profile'),
+    path('shop/', settings_views.shop_profile_form, name='shop_profile'),
+    path('pharmacy/', RedirectView.as_view(pattern_name='shop_profile', permanent=True)),
     path('branches/', RedirectView.as_view(pattern_name='settings_home', permanent=False)),
     path('branches/add/', RedirectView.as_view(pattern_name='settings_home', permanent=False)),
     path('branches/<int:pk>/edit/', RedirectView.as_view(pattern_name='settings_home', permanent=False)),
@@ -19,4 +20,5 @@ urlpatterns = [
     path('users/<int:pk>/delete/', settings_views.user_delete, name='user_delete'),
     path('barcode/', settings_views.barcode_settings, name='barcode_settings'),
     path('receipt/', settings_views.receipt_settings, name='receipt_settings'),
+    path('telegram/', settings_views.telegram_settings, name='telegram_settings'),
 ]

@@ -4,28 +4,36 @@
 <form method="post">{% csrf_token %}
 <div class="form-grid">
   <div class="form-group"><label>كود الصنف</label><input name="sku" class="form-control" value="{% if obj %}{{ obj.sku }}{% else %}{{ suggested_sku }}{% endif %}"></div>
-  <div class="form-group"><label>اسم الدواء *</label><input name="name" class="form-control" required value="{{ obj.name|default:'' }}"></div>
-  <div class="form-group"><label>الصنف الرئيسي *</label>
+  <div class="form-group"><label>اسم المنتج *</label><input name="name" class="form-control" required value="{{ obj.name|default:'' }}"></div>
+  <div class="form-group"><label>الفئة *</label>
     <select name="category" class="form-control" required>
       <option value="">اختر...</option>
       {% for c in categories %}<option value="{{ c.pk }}" {% if obj.category_id == c.pk %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
     </select>
   </div>
-  <div class="form-group"><label>الشركة المنتجة *</label>
-    <select name="company" class="form-control" required>
+  <div class="form-group"><label>الماركة *</label>
+    <select name="brand" class="form-control" required>
       <option value="">اختر...</option>
-      {% for c in companies %}<option value="{{ c.pk }}" {% if obj.company_id == c.pk %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+      {% for b in brands %}<option value="{{ b.pk }}" {% if obj.brand_id == b.pk %}selected{% endif %}>{{ b.name }}</option>{% endfor %}
     </select>
+  </div>
+  <div class="form-group"><label>الموديل</label><input name="model_name" class="form-control" value="{{ obj.model_name|default:'' }}" placeholder="iPhone 15 Pro"></div>
+  <div class="form-group"><label>السعة / الذاكرة</label><input name="storage" class="form-control" value="{{ obj.storage|default:'' }}" placeholder="256GB"></div>
+  <div class="form-group"><label>اللون</label><input name="color" class="form-control" value="{{ obj.color|default:'' }}"></div>
+  <div class="form-group"><label>الحالة</label>
+    <select name="condition" class="form-control">{% for val, label in conditions %}<option value="{{ val }}" {% if obj.condition == val %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
   </div>
   <div class="form-group"><label>الوحدة</label>
     <select name="unit" class="form-control">{% for val, label in units %}<option value="{{ val }}" {% if obj.unit == val %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
   </div>
+  <div class="form-group"><label>ضمان (شهر)</label><input name="warranty_months" type="number" class="form-control" value="{{ obj.warranty_months|default:'12' }}"></div>
   <div class="form-group"><label>الباركود</label><input name="barcode" class="form-control" value="{{ obj.barcode|default:'' }}"></div>
   <div class="form-group"><label>تكلفة الشراء *</label><input name="cost_price" type="number" step="0.01" class="form-control" required value="{{ obj.cost_price|default:'0' }}"></div>
   <div class="form-group"><label>سعر البيع *</label><input name="sale_price" type="number" step="0.01" class="form-control" required value="{{ obj.sale_price|default:'0' }}"></div>
   <div class="form-group"><label>حد الطلب</label><input name="min_stock" type="number" step="0.01" class="form-control" value="{{ obj.min_stock|default:'0' }}"></div>
   <div class="form-group"><label>الحد الأقصى</label><input name="max_stock" type="number" step="0.01" class="form-control" value="{{ obj.max_stock|default:'0' }}"></div>
   <div class="form-group full"><label>ملاحظات</label><textarea name="notes" class="form-control" rows="2">{{ obj.notes|default:'' }}</textarea></div>
+  <div class="form-group"><label class="form-check"><input type="checkbox" name="is_serialized" {% if not obj or obj.is_serialized %}checked{% endif %}> تتبع بالسيريال / IMEI</label></div>
   <div class="form-group"><label class="form-check"><input type="checkbox" name="is_active" {% if not obj or obj.is_active %}checked{% endif %}> نشط</label></div>
 </div>
 <button class="btn btn-primary"><i class="fas fa-save"></i> حفظ</button> <a href="{% url 'product_list' %}" class="btn btn-outline">رجوع</a>

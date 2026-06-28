@@ -1,0 +1,49 @@
+{% extends 'layout_app.html' %}
+{% block page_content %}
+<div class="treasury-ops-grid">
+  <div class="panel treasury-balance-card">
+    <div class="panel-body" style="text-align:center;padding:2rem">
+      <p class="text-muted">رصيد الخزنة النقدية</p>
+      <h2 style="font-size:2.5rem;font-weight:800;color:#059669">{{ cash.balance }} <small>ج.م</small></h2>
+      <a href="{% url 'cash_ledger' %}" class="btn btn-outline btn-sm" style="margin-top:0.75rem">كشف الحساب</a>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><h3>حركة جديدة</h3></div>
+    <div class="panel-body">
+      <form method="post">{% csrf_token %}
+        <div class="form-grid">
+          <div class="form-group"><label>نوع الحركة</label>
+            <select name="kind" class="form-control" required id="cash-kind">
+              {% for val, label in kinds %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="form-group" id="cash-bank-wrap" style="display:none"><label>البنك</label>
+            <select name="bank" class="form-control"><option value="">—</option>{% for b in banks %}<option value="{{ b.pk }}">{{ b.name }}</option>{% endfor %}</select>
+          </div>
+          <div class="form-group"><label>المبلغ</label><input type="number" name="amount" class="form-control" step="0.01" min="0.01" required></div>
+          <div class="form-group"><label>التاريخ</label><input type="date" name="date" class="form-control" value="{{ today|date:'Y-m-d' }}"></div>
+          <div class="form-group form-span-2"><label>ملاحظات</label><input name="notes" class="form-control"></div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:1rem"><i class="fas fa-save"></i> تنفيذ</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="panel" style="margin-top:1rem">
+  <div class="panel-header"><h3>آخر الحركات</h3></div>
+  <div class="panel-body">
+    <table class="data-table"><thead><tr><th>التاريخ</th><th>النوع</th><th>المبلغ</th><th>البنك</th><th>ملاحظات</th><th>بواسطة</th></tr></thead>
+    <tbody>{% for m in movements %}
+      <tr><td>{{ m.date }}</td><td>{{ m.get_kind_display }}</td><td>{{ m.amount }} ج.م</td><td>{{ m.bank|default:"—" }}</td><td>{{ m.notes|default:"—" }}</td><td>{{ m.created_by.username|default:"—" }}</td></tr>
+    {% empty %}<tr><td colspan="6">لا توجد حركات</td></tr>{% endfor %}</tbody></table>
+  </div>
+</div>
+<script>
+document.getElementById('cash-kind').addEventListener('change', function() {
+  document.getElementById('cash-bank-wrap').style.display = /c2b|b2c/.test(this.value) ? '' : 'none';
+});
+</script>
+{% endblock %}
