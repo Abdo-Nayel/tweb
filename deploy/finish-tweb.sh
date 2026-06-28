@@ -41,14 +41,6 @@ source venv/bin/activate
 pip install -q --upgrade pip
 pip install -q -r Requirements.txt
 
-# تأكد ALLOWED_HOSTS فيها IP السيرفر
-if ! grep -q "$SERVER_IP" .env; then
-  sed -i "s|^DJANGO_ALLOWED_HOSTS=.*|DJANGO_ALLOWED_HOSTS=${DOMAIN},${SERVER_IP},localhost,127.0.0.1|" .env
-fi
-if ! grep -q "http://${DOMAIN}" .env; then
-  sed -i "s|^DJANGO_CSRF_TRUSTED_ORIGINS=.*|DJANGO_CSRF_TRUSTED_ORIGINS=https://${DOMAIN},http://${DOMAIN}|" .env
-fi
-
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 
@@ -92,8 +84,7 @@ echo "اختبار محلي:"
 curl -sI -H "Host: ${DOMAIN}" http://127.0.0.1/ | head -5 || true
 echo ""
 echo "من المتصفح:"
-echo "  http://${DOMAIN}"
-echo "  http://${SERVER_IP}  (لو DNS لسه مش شغال)"
+echo "  https://${DOMAIN}"
 echo ""
 echo "الدخول: admin / admin123"
 echo ""
