@@ -15,6 +15,7 @@ ExecStart=/var/www/tweb/venv/bin/gunicorn config.wsgi:application \
     --error-logfile /var/log/tweb/error.log
 Restart=always
 RestartSec=3
+UMask=007
 
 [Install]
 WantedBy=multi-user.target
