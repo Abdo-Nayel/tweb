@@ -4,6 +4,8 @@ import logging
 import urllib.error
 import urllib.request
 
+from django.utils import timezone
+
 logger = logging.getLogger(__name__)
 
 
@@ -37,10 +39,35 @@ def send_telegram_message(text: str) -> bool:
         return False
 
 
-def notify_activity(username, action_label, section, description, object_ref=''):
-    parts = [f'<b>LyomasPhone</b>', f'👤 {username}', f'📂 {section or "—"}', f'⚡ {action_label}']
-    if object_ref:
-        parts.append(f'🔖 {object_ref}')
-    if description:
-        parts.append(f'\n{description}')
+def notify_activity(log, action_label=''):
+    """إشعار تليجرام بكل تفاصيل سجل الحركة."""
+    from apps.shop.models import ActivityLog
+
+    if not action_label:
+        action_label = dict(ActivityLog.Action.choices).get(log.action, log.action)
+
+    when = timezone.localtime(log.created_at).strftime('%Y-%m-%d %H:%M')
+    parts = [
+        f'<b>LyomasPhone — حركة #{log.log_no}</b>',
+        f'🕐 {when}',
+        f'👤 {log.username}',
+        f'📂 {log.section or "—"}',
+        f'⚡ {action_label}',
+    ]
+    if log.object_ref:
+        parts.append(f'🔖 مرجع المستند: <b>{log.object_ref}</b>')
+    if log.description:
+        parts.append(f'\n📝 {log.description}')
+    if log.branch_id:
+        branch = getattr(log, 'branch', None)
+        if branch is None:
+            try:
+                from apps.shop.models import Branch
+                branch = Branch.objects.filter(pk=log.branch_id).only('name').first()
+            except Exception:
+                branch = None
+        if branch:
+            parts.append(f'🏢 فرع: {branch.name}')
+    if log.ip_address:
+        parts.append(f'🌐 IP: {log.ip_address}')
     send_telegram_message('\n'.join(parts))

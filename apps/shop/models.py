@@ -125,6 +125,7 @@ class ActivityLog(models.Model):
         related_name='activity_logs',
     )
     username = models.CharField('المستخدم', max_length=150)
+    log_no = models.CharField('رقم الحركة', max_length=20, unique=True, db_column='no', blank=True)
     action = models.CharField('العملية', max_length=20, choices=Action.choices)
     section = models.CharField('القسم', max_length=80, blank=True)
     description = models.TextField('التفاصيل', blank=True)
@@ -146,7 +147,13 @@ class ActivityLog(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f'{self.username} — {self.get_action_display()}'
+        return f'{self.log_no or self.pk} — {self.username} — {self.get_action_display()}'
+
+    def save(self, *args, **kwargs):
+        if not self.log_no:
+            from apps.core.codes import next_serial
+            self.log_no = next_serial(ActivityLog, 'log_no')
+        super().save(*args, **kwargs)
 
 
 class TelegramSettings(models.Model):

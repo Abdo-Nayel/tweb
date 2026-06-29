@@ -122,17 +122,19 @@ def activity_log(request):
         title = f'سجل الحركات — {period_label}'
         rows = [
             [
+                log.log_no or '—',
                 timezone.localtime(log.created_at).strftime('%Y-%m-%d %H:%M'),
                 log.username,
                 log.get_action_display(),
                 log.section or '—',
+                log.object_ref or '—',
                 log.description or '—',
             ]
             for log in logs
         ]
         return export_table_pdf(
             title=title,
-            headers=['الوقت', 'المستخدم', 'العملية', 'القسم', 'التفاصيل'],
+            headers=['رقم الحركة', 'الوقت', 'المستخدم', 'العملية', 'القسم', 'المرجع', 'التفاصيل'],
             rows=rows,
             filename='activity-log.pdf',
         )
