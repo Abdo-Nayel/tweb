@@ -15,6 +15,7 @@ class Supplier(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        db_table = 'pty_sup'
         verbose_name = 'مورد'
         verbose_name_plural = 'الموردين'
         ordering = ['name']
@@ -47,6 +48,7 @@ class SupplierPayment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        db_table = 'pty_sup_pay'
         verbose_name = 'سداد مورد'
         verbose_name_plural = 'سدادات الموردين'
         ordering = ['-date', '-id']
@@ -83,6 +85,7 @@ class Customer(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        db_table = 'pty_cust'
         verbose_name = 'عميل'
         verbose_name_plural = 'العملاء'
         ordering = ['name']
@@ -115,6 +118,7 @@ class CustomerPayment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        db_table = 'pty_cust_pay'
         verbose_name = 'تحصيل عميل'
         verbose_name_plural = 'تحصيلات العملاء'
         ordering = ['-date', '-id']

@@ -15,7 +15,7 @@ class ShopProfile(models.Model):
     class Meta:
         verbose_name = 'بيانات المحل'
         verbose_name_plural = 'بيانات المحل'
-        db_table = 'pharmacy_pharmacyprofile'
+        db_table = 'shop_prf'
 
     def __str__(self):
         return self.name
@@ -33,6 +33,7 @@ class Branch(models.Model):
     is_active = models.BooleanField('نشط', default=True)
 
     class Meta:
+        db_table = 'shop_br'
         verbose_name = 'فرع'
         verbose_name_plural = 'الفروع'
         ordering = ['code']
@@ -62,6 +63,7 @@ class BarcodeLabelSettings(models.Model):
     copies_default = models.PositiveIntegerField('عدد النسخ الافتراضي', default=1)
 
     class Meta:
+        db_table = 'lbl_cfg'
         verbose_name = 'إعدادات ليبل الباركود'
         verbose_name_plural = 'إعدادات ليبل الباركود'
 
@@ -92,6 +94,7 @@ class ReceiptSettings(models.Model):
     auto_print = models.BooleanField('طباعة تلقائية بعد الترحيل', default=False)
 
     class Meta:
+        db_table = 'rcp_cfg'
         verbose_name = 'إعدادات إيصال البيع'
         verbose_name_plural = 'إعدادات إيصال البيع'
 
@@ -137,6 +140,7 @@ class ActivityLog(models.Model):
     created_at = models.DateTimeField('الوقت', auto_now_add=True)
 
     class Meta:
+        db_table = 'act_log'
         verbose_name = 'سجل حركة'
         verbose_name_plural = 'سجل الحركات'
         ordering = ['-created_at']

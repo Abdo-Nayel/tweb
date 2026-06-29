@@ -21,6 +21,7 @@ class Bank(models.Model):
     notes = models.CharField('ملاحظات', max_length=255, blank=True)
 
     class Meta:
+        db_table = 'try_bnk'
         verbose_name = 'بنك'
         verbose_name_plural = 'البنوك'
         ordering = ['name', 'code']
@@ -35,6 +36,7 @@ class ExpenseCategory(models.Model):
     is_active = models.BooleanField(default=True)
 
     class Meta:
+        db_table = 'try_exp_cat'
         verbose_name = 'بند مصروف'
         verbose_name_plural = 'بنود المصروفات'
         ordering = ['code']
@@ -66,6 +68,7 @@ class Expense(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        db_table = 'try_exp'
         verbose_name = 'مصروف'
         verbose_name_plural = 'المصروفات'
         ordering = ['-date']
@@ -80,6 +83,7 @@ class CashBox(models.Model):
     balance = models.DecimalField('الرصيد', max_digits=14, decimal_places=2, default=0)
 
     class Meta:
+        db_table = 'try_cash'
         verbose_name = 'خزنة نقدية'
         verbose_name_plural = 'الخزائن النقدية'
 

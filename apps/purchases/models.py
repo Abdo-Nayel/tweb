@@ -33,6 +33,7 @@ class PurchaseInvoice(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        db_table = 'pu_inv'
         verbose_name = 'فاتورة مشتريات'
         verbose_name_plural = 'فواتير المشتريات'
         ordering = ['-date', '-id']
@@ -95,6 +96,7 @@ class PurchaseLine(models.Model):
     expiry_date = models.DateField('تاريخ الصلاحية', null=True, blank=True)
 
     class Meta:
+        db_table = 'pu_ln'
         verbose_name = 'بند مشتريات'
         verbose_name_plural = 'بنود المشتريات'
 
@@ -124,6 +126,7 @@ class PurchasePayment(models.Model):
     notes = models.CharField('ملاحظات', max_length=120, blank=True)
 
     class Meta:
+        db_table = 'pu_pay'
         verbose_name = 'سداد مشتريات'
         verbose_name_plural = 'سدادات المشتريات'
 

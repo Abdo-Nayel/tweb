@@ -22,6 +22,7 @@ class Warehouse(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        db_table = 'inv_wh'
         verbose_name = 'مخزن'
         verbose_name_plural = 'المخازن'
         ordering = ['code']
@@ -41,7 +42,7 @@ class ProductCategory(models.Model):
         verbose_name = 'فئة منتج'
         verbose_name_plural = 'فئات المنتجات'
         ordering = ['code']
-        db_table = 'inventory_drugcategory'
+        db_table = 'inv_cat'
 
     def __str__(self):
         return self.name
@@ -62,7 +63,7 @@ class Brand(models.Model):
         verbose_name = 'ماركة'
         verbose_name_plural = 'الماركات'
         ordering = ['name']
-        db_table = 'inventory_drugcompany'
+        db_table = 'inv_brd'
 
     def __str__(self):
         return self.name
@@ -119,6 +120,7 @@ class Product(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        db_table = 'inv_prd'
         verbose_name = 'منتج'
         verbose_name_plural = 'المنتجات'
         ordering = ['name']
@@ -178,6 +180,7 @@ class StockLot(models.Model):
     )
 
     class Meta:
+        db_table = 'inv_lot'
         verbose_name = 'رصيد مخزن'
         verbose_name_plural = 'أرصدة المخازن'
         unique_together = [['product', 'warehouse', 'serial_number']]
@@ -235,6 +238,7 @@ class StockMovement(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        db_table = 'inv_mv'
         verbose_name = 'حركة مخزنية'
         verbose_name_plural = 'الحركات المخزنية'
         ordering = ['-created_at']

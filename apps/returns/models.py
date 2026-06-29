@@ -40,6 +40,7 @@ class ReturnDocument(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        db_table = 'rt_doc'
         verbose_name = 'مرتجع فاتورة'
         verbose_name_plural = 'مرتجعات الفواتير'
         ordering = ['-date', '-id']
@@ -122,6 +123,7 @@ class ReturnLine(models.Model):
     expiry_date = models.DateField(null=True, blank=True)
 
     class Meta:
+        db_table = 'rt_ln'
         verbose_name = 'بند مرتجع'
         verbose_name_plural = 'بنود المرتجعات'
 
@@ -142,5 +144,6 @@ class ReturnPayment(models.Model):
     notes = models.CharField(max_length=120, blank=True)
 
     class Meta:
+        db_table = 'rt_pay'
         verbose_name = 'سداد مرتجع'
         verbose_name_plural = 'سدادات المرتجعات'

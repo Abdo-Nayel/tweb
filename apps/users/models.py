@@ -27,6 +27,7 @@ class User(AbstractUser):
     )
 
     class Meta:
+        db_table = 'usr'
         verbose_name = 'مستخدم'
         verbose_name_plural = 'المستخدمون'
 
@@ -65,6 +66,7 @@ class UserModuleAccess(models.Model):
     can_delete = models.BooleanField('حذف', default=False)
 
     class Meta:
+        db_table = 'usr_mod'
         verbose_name = 'صلاحية مستخدم'
         verbose_name_plural = 'صلاحيات المستخدمين'
         unique_together = [['user', 'module']]

@@ -40,6 +40,7 @@ class SalesInvoice(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        db_table = 'sl_inv'
         verbose_name = 'فاتورة مبيعات'
         verbose_name_plural = 'فواتير المبيعات'
         ordering = ['-date', '-id']
@@ -153,6 +154,7 @@ class SalesLine(models.Model):
     discount = models.DecimalField('خصم', max_digits=12, decimal_places=2, default=0)
 
     class Meta:
+        db_table = 'sl_ln'
         verbose_name = 'بند مبيعات'
         verbose_name_plural = 'بنود المبيعات'
 
@@ -183,6 +185,7 @@ class SalesPayment(models.Model):
     notes = models.CharField('ملاحظات', max_length=120, blank=True)
 
     class Meta:
+        db_table = 'sl_pay'
         verbose_name = 'تحصيل فاتورة مبيعات'
         verbose_name_plural = 'تحصيلات فواتير المبيعات'
 
