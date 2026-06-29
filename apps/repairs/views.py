@@ -18,6 +18,13 @@ def _next_order_no():
     return next_serial(RepairOrder, 'order_no')
 
 
+def _parse_decimal(raw, default='0'):
+    text = str(raw).strip() if raw not in (None, '') else ''
+    if not text:
+        return Decimal(default)
+    return Decimal(text)
+
+
 @login_required
 def repair_list(request):
     status = request.GET.get('status', '')
@@ -39,33 +46,38 @@ def repair_add(request):
     warehouses = Warehouse.objects.filter(is_active=True).order_by('code')
     products = Product.objects.filter(is_active=True).order_by('name')
     if request.method == 'POST':
-        wh = get_object_or_404(Warehouse, pk=request.POST['warehouse'])
-        order = RepairOrder.objects.create(
-            order_no=_next_order_no(),
-            date=request.POST.get('date') or date.today(),
-            customer_name=request.POST.get('customer_name', '').strip(),
-            customer_phone=request.POST.get('customer_phone', '').strip(),
-            device_desc=request.POST.get('device_desc', '').strip(),
-            problem=request.POST.get('problem', '').strip(),
-            labor_fee=Decimal(request.POST.get('labor_fee') or 0),
-            warehouse=wh,
-            notes=request.POST.get('notes', ''),
-            created_by=request.user,
-        )
-        _save_parts(request, order)
-        order.recalculate()
-
-        deposit = Decimal(request.POST.get('deposit') or 0)
-        if deposit > 0:
-            bank_id = request.POST.get('deposit_bank') or None
-            pay_type = 'bank' if bank_id else 'cash'
-            bank = get_object_or_404(banks_for_user(request.user), pk=bank_id) if bank_id else None
-            order.record_payment(deposit, pay_type=pay_type, bank=bank, is_deposit=True, user=request.user)
+        wh_id = request.POST.get('warehouse')
+        if not wh_id:
+            messages.error(request, 'اختر المخزن')
+            return redirect('repair_add')
+        wh = get_object_or_404(Warehouse, pk=wh_id)
 
         try:
-            order.deduct_stock_parts(user=request.user)
+            with transaction.atomic():
+                order = RepairOrder.objects.create(
+                    order_no=_next_order_no(),
+                    date=request.POST.get('date') or date.today(),
+                    customer_name=request.POST.get('customer_name', '').strip(),
+                    customer_phone=request.POST.get('customer_phone', '').strip(),
+                    device_desc=request.POST.get('device_desc', '').strip(),
+                    problem=request.POST.get('problem', '').strip(),
+                    labor_fee=_parse_decimal(request.POST.get('labor_fee'), '0'),
+                    warehouse=wh,
+                    notes=request.POST.get('notes', ''),
+                    created_by=request.user,
+                )
+                _save_parts(request, order)
+                order.recalculate()
+
+                deposit = _parse_decimal(request.POST.get('deposit'), '0')
+                if deposit > 0:
+                    bank_id = request.POST.get('deposit_bank') or None
+                    pay_type = 'bank' if bank_id else 'cash'
+                    bank = get_object_or_404(banks_for_user(request.user), pk=bank_id) if bank_id else None
+                    order.record_payment(deposit, pay_type=pay_type, bank=bank, is_deposit=True, user=request.user)
+
+                order.deduct_stock_parts(user=request.user)
         except ValueError as exc:
-            order.delete()
             messages.error(request, str(exc))
             return redirect('repair_add')
 
@@ -91,12 +103,19 @@ def _save_parts(request, order):
     for i, src in enumerate(sources):
         if src not in (RepairPart.Source.STOCK, RepairPart.Source.EXTERNAL):
             continue
-        qty = Decimal(qtys[i] if i < len(qtys) else 1 or 1)
-        cost = Decimal(costs[i] if i < len(costs) else 0 or 0)
-        if qty <= 0:
-            continue
         prod_id = products[i] if i < len(products) else ''
         ext = ext_descs[i] if i < len(ext_descs) else ''
+        if src == RepairPart.Source.STOCK and not prod_id:
+            continue
+        if src == RepairPart.Source.EXTERNAL and not ext.strip():
+            continue
+        try:
+            qty = _parse_decimal(qtys[i] if i < len(qtys) else '1', '1')
+            cost = _parse_decimal(costs[i] if i < len(costs) else '0', '0')
+        except Exception:
+            continue
+        if qty <= 0:
+            continue
         if src == RepairPart.Source.STOCK and prod_id:
             RepairPart.objects.create(
                 order=order, source=src, product_id=prod_id,
