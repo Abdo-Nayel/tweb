@@ -7,18 +7,14 @@ User=softwarehouse
 Group=www-data
 WorkingDirectory=/var/www/tweb
 EnvironmentFile=/var/www/tweb/.env
-ExecStartPre=/bin/rm -f /var/www/tweb/gunicorn.sock
 ExecStart=/var/www/tweb/venv/bin/gunicorn config.wsgi:application \
     --workers 3 \
-    --bind unix:/var/www/tweb/gunicorn.sock \
+    --bind 127.0.0.1:8010 \
     --timeout 120 \
     --access-logfile /var/log/tweb/access.log \
     --error-logfile /var/log/tweb/error.log
-ExecStartPost=/bin/chmod 660 /var/www/tweb/gunicorn.sock
-ExecStartPost=/bin/chgrp www-data /var/www/tweb/gunicorn.sock
 Restart=always
 RestartSec=3
-UMask=007
 
 [Install]
 WantedBy=multi-user.target
