@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 def _get_settings():
     try:
-        from apps.pharmacy.models import TelegramSettings
+        from apps.shop.models import TelegramSettings
         return TelegramSettings.get_solo()
     except Exception:
         return None

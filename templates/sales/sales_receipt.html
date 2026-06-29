@@ -104,7 +104,7 @@
     font-weight: 800;
     white-space: pre-line;
   }
-  .pharmacy-info {
+  .shop-info {
     text-align: center;
     font-size: {{ receipt.body_font_size|add:"-1" }}px;
     font-weight: 700;
@@ -130,7 +130,7 @@
   {% endif %}
 
   <div class="receipt-title">{% if profile %}{{ profile.name }}{% else %}LyomasPhone{% endif %}</div>
-  {% if profile and profile.address %}<div class="pharmacy-info">{{ profile.address }}{% if profile.phone %} — {{ profile.phone }}{% endif %}</div>{% endif %}
+  {% if profile and profile.address %}<div class="shop-info">{{ profile.address }}{% if profile.phone %} — {{ profile.phone }}{% endif %}</div>{% endif %}
 
   {% if receipt.header_text %}<div class="receipt-sub">{{ receipt.header_text }}</div>{% endif %}
 

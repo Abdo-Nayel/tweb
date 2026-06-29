@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from apps.core.codes import next_serial
 from apps.core.pagination import paginate_queryset
 from apps.inventory.models import Brand, Product, ProductCategory, Warehouse
-from apps.pharmacy.models import ShopProfile
+from apps.shop.models import ShopProfile
 from apps.treasury.banks import banks_for_user
 from .models import ExternalBuyback
 from .services import create_product_from_buyback

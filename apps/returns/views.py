@@ -14,7 +14,7 @@ from apps.core.codes import lookup_by_code, next_invoice_number
 from apps.core.pagination import paginate_queryset
 from apps.inventory.models import Product, Warehouse, ProductCategory
 from apps.parties.models import Customer, Supplier
-from apps.pharmacy.models import Branch
+from apps.shop.models import Branch
 from apps.treasury.models import Bank
 from apps.treasury.banks import banks_for_user
 from apps.parties.customers import active_customers

@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
 from apps.core.activity import log_activity
-from apps.pharmacy.models import ActivityLog
+from apps.shop.models import ActivityLog
 
 
 def login_view(request):

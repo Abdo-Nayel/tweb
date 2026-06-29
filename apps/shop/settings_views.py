@@ -14,7 +14,7 @@ from apps.core.permission_groups import MODULE_GROUPS
 from apps.core.dashboard_shortcuts import DASHBOARD_SHORTCUTS, DEFAULT_DASHBOARD_SHORTCUTS, SHORTCUTS_BY_KEY
 from apps.core.views import delete_confirm
 from apps.core.pagination import paginate_queryset
-from apps.pharmacy.models import ShopProfile, Branch, BarcodeLabelSettings, ReceiptSettings, TelegramSettings
+from apps.shop.models import ShopProfile, Branch, BarcodeLabelSettings, ReceiptSettings, TelegramSettings
 from apps.treasury.models import Bank
 from apps.treasury.banks import banks_for_user
 from apps.users.models import UserModuleAccess
@@ -56,7 +56,7 @@ def shop_profile_form(request):
             ShopProfile.objects.create(**data)
         from django.core.cache import cache
         cache.delete('shop_profile')
-        cache.delete('pharmacy_profile')
+        cache.delete('shop_profile')
         messages.success(request, 'تم حفظ بيانات المحل')
         return redirect('settings_home')
     return render(request, 'settings/shop_form.html', {
@@ -64,8 +64,6 @@ def shop_profile_form(request):
         'profile': profile,
     })
 
-
-pharmacy_profile_form = shop_profile_form
 
 
 # ─── الفروع ───

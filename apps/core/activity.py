@@ -1,6 +1,6 @@
 import re
 
-from apps.pharmacy.models import ActivityLog
+from apps.shop.models import ActivityLog
 
 
 def log_activity(request, action, section='', description='', object_ref=''):
@@ -20,7 +20,7 @@ def log_activity(request, action, section='', description='', object_ref=''):
     )
     try:
         from apps.core.telegram_notify import notify_activity
-        from apps.pharmacy.models import TelegramSettings
+        from apps.shop.models import TelegramSettings
         cfg = TelegramSettings.get_solo()
         if action == ActivityLog.Action.LOGIN and not cfg.notify_on_login:
             return log

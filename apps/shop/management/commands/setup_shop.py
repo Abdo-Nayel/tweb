@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
-from apps.pharmacy.models import ShopProfile
+from apps.shop.models import ShopProfile
 from apps.users.models import UserModuleAccess
 
 

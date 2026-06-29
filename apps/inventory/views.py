@@ -11,7 +11,7 @@ from apps.core.views import delete_confirm
 from apps.core.delete_checks import (
     warehouse_blockers, category_blockers, company_blockers, product_blockers,
 )
-from apps.pharmacy.models import Branch, BarcodeLabelSettings
+from apps.shop.models import Branch, BarcodeLabelSettings
 from .models import Warehouse, ProductCategory, Brand, Product, StockLot, StockMovement
 from .services import apply_stock_movement
 

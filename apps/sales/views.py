@@ -16,7 +16,7 @@ from apps.core.codes import next_invoice_number, lookup_by_code
 from apps.parties.models import Customer
 from apps.parties.customers import active_customers
 from apps.inventory.models import Product, Warehouse, ProductCategory
-from apps.pharmacy.models import Branch, ShopProfile, ReceiptSettings
+from apps.shop.models import Branch, ShopProfile, ReceiptSettings
 from apps.treasury.models import Bank
 from apps.treasury.banks import banks_for_user
 from .models import SalesInvoice, SalesLine, SalesPayment

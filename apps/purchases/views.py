@@ -12,7 +12,7 @@ from apps.core.views import delete_confirm
 from apps.core.delete_checks import purchase_invoice_blockers
 from apps.parties.models import Supplier
 from apps.inventory.models import Product, Warehouse
-from apps.pharmacy.models import Branch, ShopProfile
+from apps.shop.models import Branch, ShopProfile
 from apps.treasury.models import Bank
 from apps.treasury.banks import banks_for_user
 from .models import PurchaseInvoice, PurchaseLine, PurchasePayment

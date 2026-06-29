@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'apps.core',
     'apps.users',
-    'apps.pharmacy',
+    'apps.shop',
     'apps.inventory',
     'apps.parties',
     'apps.purchases',
@@ -77,7 +77,7 @@ TEMPLATES = [{
             'django.template.context_processors.request',
             'django.contrib.auth.context_processors.auth',
             'django.contrib.messages.context_processors.messages',
-            'apps.pharmacy.context_processors.shop_info',
+            'apps.shop.context_processors.shop_info',
         ],
     },
 }]

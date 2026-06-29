@@ -8,8 +8,8 @@ from django.utils import timezone
 from apps.core.activity import log_activity
 from apps.core.ledger_export import export_table_pdf
 from apps.core.permissions import require_module
-from apps.pharmacy.models import ActivityLog
-from apps.pharmacy.report_services import build_daily_report
+from apps.shop.models import ActivityLog
+from apps.shop.report_services import build_daily_report
 
 User = get_user_model()
 

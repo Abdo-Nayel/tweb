@@ -1,15 +1,16 @@
 from django.apps import AppConfig
 
 
-class PharmacyConfig(AppConfig):
+class ShopConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apps.pharmacy'
+    name = 'apps.shop'
+    label = 'pharmacy'
     verbose_name = 'إعدادات المحل'
 
     def ready(self):
-        if getattr(PharmacyConfig, '_sqlite_pragmas', False):
+        if getattr(ShopConfig, '_sqlite_pragmas', False):
             return
-        PharmacyConfig._sqlite_pragmas = True
+        ShopConfig._sqlite_pragmas = True
 
         from django.core.cache import cache
         from django.db.backends.signals import connection_created
@@ -28,4 +29,3 @@ class PharmacyConfig(AppConfig):
         @receiver([post_save, post_delete], sender=ShopProfile)
         def clear_shop_cache(sender, **kwargs):
             cache.delete('shop_profile')
-            cache.delete('pharmacy_profile')
